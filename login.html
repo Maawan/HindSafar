@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" placeholder="Phone Number" id="phone" required>
+      <input type="password" placeholder="Password" id="password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const phone = document.getElementById("phone").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch("http://localhost/HindSafar/backend/api/user/login.php", {  // Replace with your actual path
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include", // This allows sending/receiving cookies (for session)
+          body: JSON.stringify({ phone, password })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+          alert("Login successful. Welcome " + result.user.name);
+          window.location.href = "dashboard.php"; // or dashboard.php if server-rendered
+        } else {
+          alert("Login failed: " + result.message);
+        }
+
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Something went wrong.");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+      <input type="text" placeholder="Full Name" id="name" required>
+      <input type="text" placeholder="Contact Number" id="phone" required>
+      <input type="password" placeholder="Password" id="password" required>
+      <input type="password" placeholder="Confirm Password" id="confirmPassword" required>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="login.html">Login</a></p>
+  </div>
+
+  <script>
+    document.getElementById("signupForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost/HindSafar/backend/api/user/signup.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ name, phone, password })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+          window.location.href = "dashboard.php";
+        } else {
+          alert("Signup failed: " + result.message);
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  </script>
+</body>
+</html>
