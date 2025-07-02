@@ -3,6 +3,9 @@ header('Content-Type: application/json');
 session_start();
 require '../../Database/db.php'; // adjust path to your DB connection
 
+require('../../../razorpay-php/Razorpay.php');
+use Razorpay\Api\Api;
+
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     http_response_code(405);
@@ -13,13 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 $data = json_decode(file_get_contents("php://input"), true);
 $user_id = $_SESSION['user_id'] ?? null;
 
-if (!$user_id || !isset($data['flightID'], $data['passengers'], $data['totalAmount'])) {
+if (!$user_id || !isset($data['flight_id'], $data['passengers'], $data['totalAmount'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Invalid requestt' , $user_id , $data['flightID'] , $data['passengers'] , $data['totalAmount']]);
+    echo json_encode(['success' => false, 'message' => 'Invalid requestt' , $user_id , $data['flight_id'] , $data['passengers'] , $data['totalAmount']]);
     exit();
 }
 
-$flightID = $data['flightID'];
+$flight_id = $data['flight_id'];
 $passengers = $data['passengers'];
 $frontendTotal = floatval($data['totalAmount']);
 
@@ -28,7 +31,7 @@ try {
 
     // Fetch flight details
     $stmt = $pdo->prepare("SELECT * FROM flights WHERE flight_id = ?");
-    $stmt->execute([$flightID]);
+    $stmt->execute([$flight_id]);
     $flight = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$flight) {
@@ -63,14 +66,26 @@ try {
         throw new Exception("Fare mismatch. Cannot create order.");
     }
     $backendTotal = ceil($backendTotal);
+
+    $api_key = 'rzp_test_tN2HjlxfDwX4rW';
+    $api_secret = '5wjPwOMcdSgsbG1dZTvQCqBq';
+    $api = new Api($api_key , $api_secret);
+    
+    $order = $api->order->create([
+        'amount' => $backendTotal * 100,
+        'currency' => 'INR',
+    ]);
+
+    $orderId = $order->id;
+
     // Insert payment record (status = pending)
-    $stmt = $pdo->prepare("INSERT INTO payments (amount, method, payment_status) VALUES (?, 'UPI', 'Pending')");
-    $stmt->execute([$backendTotal]);
+    $stmt = $pdo->prepare("INSERT INTO payments (amount, method, payment_status , razorpay_order_id) VALUES (?, 'Razorpay', 'Pending' , ?)");
+    $stmt->execute([$backendTotal , $orderId]);
     $payment_id = $pdo->lastInsertId();
 
     // Insert booking record (status = pending payment)
     $stmt = $pdo->prepare("INSERT INTO flight_bookings (user_id, flight_id, payment_id, total_fare, status) VALUES (?, ?, ?, ?, 'Pending')");
-    $stmt->execute([$user_id, $flightID, $payment_id, $backendTotal]);
+    $stmt->execute([$user_id, $flight_id, $payment_id, $backendTotal]);
     $booking_id = $pdo->lastInsertId();
 
     // Insert passengers records
@@ -89,17 +104,25 @@ try {
 
     // Update flight seats_available
     $stmt = $pdo->prepare("UPDATE flights SET seats_available = seats_available - ? WHERE flight_id = ?");
-    $stmt->execute([count($passengers), $flightID]);
+    $stmt->execute([count($passengers), $flight_id]);
 
-    $pdo->commit();
+    
+    
+
 
     echo json_encode([
         'success' => true,
         'message' => 'Order created',
         'booking_id' => $booking_id,
-        'payment_id' => $payment_id,
+        'payment_id' => $orderId,
         'amount' => $backendTotal
     ]);
+
+    $pdo->commit();
+
+    
+
+    
 
 } catch (Exception $e) {
     $pdo->rollBack();

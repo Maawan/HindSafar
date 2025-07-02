@@ -131,11 +131,14 @@ if (!$flightID) {
     </ul>
   </div>
 </div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
   const flightID = "<?php echo $flightID; ?>";
   let passengerIndex = 0;
   let flight = null;
+
+  
 
   async function fetchFlight() {
     try {
@@ -163,6 +166,7 @@ if (!$flightID) {
 
   function renderFlightDetails() {
     const f = flight;
+    console.log(f);
     const allowedCabin = f.cabin_extra_allowed == 1;
     const allowedLuggage = f.luggage_extra_allowed == 1;
 
@@ -173,7 +177,7 @@ if (!$flightID) {
     const durationMins = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
 
     document.getElementById("flightDetails").innerHTML = `
-      <p><strong>Airline:</strong> ${f.airline} (${f.flightID})</p>
+      <p><strong>Airline:</strong> ${f.airline} (${f.flight_id})</p>
       <p><strong>Route:</strong> ${f.from_city} ➝ ${f.to_city}</p>
       <p><strong>Departure:</strong> ${depTime.toLocaleString()}</p>
       <p><strong>Arrival:</strong> ${arrTime.toLocaleString()}</p>
@@ -281,7 +285,7 @@ if (!$flightID) {
   }
   // Prepare final order data
   const orderData = {
-    flightID: flightID,
+    flight_id: flightID,
     passengers: passengers,
     totalAmount: parseFloat(document.getElementById("totalCost").innerText.replace("₹","").replace(",",""))
   };
@@ -300,16 +304,29 @@ if (!$flightID) {
 
     if (result.success) {
       // Redirect to payment or initiate payment logic here
-      alert("Order created. Proceeding to payment...");
-      // Example: redirect with payment_id
-      // window.location.href = `payment_page.php?payment_id=${result.payment_id}`;
+      //alert("Order created. Proceeding to payment...");
+      console.log("amount" + " " + result.amount);
+      
+      let options = {
+        key : "rzp_test_tN2HjlxfDwX4rW",
+        amount : result.amount,
+        currency : "INR",
+        name : "HindSafar Online Booking Pvt Ltd",
+        description : "Pay for your order",
+        order_id : result.payment_id,
+        callback_url : "http://localhost/Hindsafar/verify.php"
+      }
+      let rzp = new Razorpay(options);
+      rzp.open();
+
+
     } else {
       alert("Failed to create order: " + (result.message || "Unknown error"));
     }
 
   } catch (err) {
     console.error(err);
-    alert("Error while creating order. Please try again.");
+    alert("Error while creating order. Please try again." + err);
   }
 }
 

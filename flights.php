@@ -217,7 +217,7 @@ $name = $_SESSION['name'];
 
           resultContainer.innerHTML += `
             <div class="flight-card">
-              <h4>✈️ ${flight.airline} (${flight.flightID})</h4>
+              <h4>✈️ ${flight.airline} (${flight.flight_id})</h4>
               <p><strong>From:</strong> ${flight.from_city} &nbsp; <strong>To:</strong> ${flight.to_city}</p>
               <p><strong>Departure:</strong> ${new Date(flight.dep_time).toLocaleString()}</p>
               <p><strong>Arrival:</strong> ${new Date(flight.arrival_time).toLocaleString()}</p>
@@ -225,9 +225,9 @@ $name = $_SESSION['name'];
               <p><strong>Fare:</strong> ₹${parseFloat(flight.base_fare).toFixed(2)} per person</p>
               <p>🧳 ${luggageText}</p>
               <p>🎒 ${cabinText}</p>
-              <button onclick="alert('Redirect to booking page for ${flight.flightID}')">Book Now</button>
+              
 
-              <button onclick="window.location.href = 'flights/book.php?fl=${flight.flightID}'">Book Now</button>
+              <button onclick="window.location.href = 'flights/book.php?fl=${flight.flight_id}'">Book Now</button>
             </div>
           `;
         });

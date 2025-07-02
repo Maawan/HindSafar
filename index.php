@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Check if user is logged in
+if (isset($_SESSION['name'])) {
+  header("Location: dashboard.php");
+  exit();
+}
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

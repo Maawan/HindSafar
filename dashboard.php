@@ -45,6 +45,7 @@ $name = $_SESSION['name'];
     .user-menu {
       position: relative;
       cursor: pointer;
+      user-select: none;
     }
 
     .user-dropdown {
@@ -76,7 +77,7 @@ $name = $_SESSION['name'];
       background-color: #f5f5f5;
     }
 
-    .user-menu:hover .user-dropdown {
+    .user-dropdown.show {
       display: block;
     }
 
@@ -169,9 +170,9 @@ $name = $_SESSION['name'];
     <div class="user-menu">
       <span>👤 <?php echo htmlspecialchars($name); ?></span>
       <div class="user-dropdown">
-        <a href="#">Your Bookings</a>
-        <a href="#">Contact Us</a>
-        <a href="logout.php">Logout</a>
+        <a href="./my-bookings.php">My Bookings</a>
+        <a href="./contact-us.php">Contact Us</a>
+        <a href="./logout.php">Logout</a>
       </div>
     </div>
   </div>
@@ -209,6 +210,19 @@ $name = $_SESSION['name'];
     function goTo(page) {
       window.location.href = page;
     }
+
+    // Dropdown toggle functionality
+    const userMenu = document.querySelector('.user-menu');
+    const userDropdown = document.querySelector('.user-dropdown');
+
+    userMenu.addEventListener('click', function(e) {
+      e.stopPropagation(); // Prevent closing when clicking inside
+      userDropdown.classList.toggle('show');
+    });
+
+    document.body.addEventListener('click', function() {
+      userDropdown.classList.remove('show');
+    });
   </script>
 </body>
 </html>
