@@ -39,7 +39,8 @@ $sql2 = "SELECT
     fb.total_fare AS amount,
     fb.created_at AS booking_date,
     f.from_city,
-    f.to_city
+    f.to_city,
+    p.razorpay_order_id AS order_id
 FROM flight_bookings fb
 JOIN flights f ON fb.flight_id = f.flight_id
 LEFT JOIN payments p ON fb.payment_id = p.payment_id
@@ -60,7 +61,9 @@ while ($row = $result->fetch_assoc()) {
         "flight_status" => $row['flight_status'],
         "payment_status" => $row['payment_status'],
         "amount" => $row['amount'],
+        "order_id" => $row['order_id'],
         "date_time" => $row['booking_date']
+
     ];
 }
 

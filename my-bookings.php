@@ -108,9 +108,56 @@ if (!isset($_SESSION['name'])) {
       font-size: 18px;
       color: #555;
     }
+    .row-highlight{
+    }
+    .row-highlight:hover{
+      background: #f4f7fa;
+    }
+    .pointer{
+      cursor : pointer;
+    }
     h1{
       cursor: pointer;
     }
+    .cancel-btn{
+      display: inline-block;
+      margin-left : 5px;
+      margin-right : 5px;
+      padding: 4px 10px;
+      background:rgb(163, 34, 22);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      outline : none;
+      border : none;
+      cursor: pointer;
+    }
+    .cancel-btn:hover{
+      background:rgb(113, 10, 1);
+    }
+    .down-btn{
+      display: inline-block;
+      margin-left : 5px;
+      margin-right : 5px;
+      padding: 4px 10px;
+      background:rgb(1, 65, 162);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      outline : none;
+      border : none;
+      cursor: pointer;
+    }
+    .down-btn:hover{
+      background:rgb(1, 44, 108);
+    }
+    .yellow-back{
+      background : orange;
+    }
+    .yellow-back:hover{
+      background : rgb(199, 122, 15);
+    }
+
   </style>
 </head>
 <body>
@@ -140,7 +187,7 @@ if (!isset($_SESSION['name'])) {
     <div id="package" class="tab-content" style="display:none;"></div>
   </div>
 </div>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 function showTab(tabId) {
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -148,6 +195,8 @@ function showTab(tabId) {
   document.getElementById(tabId).style.display = 'block';
   event.target.classList.add('active');
 }
+
+
 
 // Fetch bookings from API (simulate with setTimeout)
 function navigateToHome(){
@@ -207,6 +256,34 @@ function populateBookings(data) {
   packageTab.innerHTML = data.packages.length ? buildTable(data.packages) : '<div class="no-booking">No package bookings.</div>';
 }
 
+function navigateToTicket(bookingId){
+  window.location.href = "./my-ticket.php?booking_id=" + bookingId;
+  
+}
+
+function downloadBtn(booking_id){
+  window.location.href = "./generate-ticket.php?booking_id=" + booking_id;
+  console.log("./generate-ticket.php?booking_id=" + booking_id);
+  
+  
+}
+function retryPayment(booking , amount){
+  console.log(booking + " " + typeof amount);
+
+  let options = {
+      key : "rzp_test_tN2HjlxfDwX4rW",
+      amount : amount * 100,
+      currency : "INR",
+      name : "HindSafar Online Booking Pvt Ltd",
+      description : "Pay for your order",
+      order_id : booking,
+      callback_url : "http://localhost/Hindsafar/verify.php"
+      }
+      let rzp = new Razorpay(options);
+      rzp.open();
+  
+}
+
 function buildTable(bookings) {
   if (!bookings.length) {
     return '<div class="no-booking">😔 You have no bookings yet.</div>';
@@ -222,17 +299,19 @@ function buildTable(bookings) {
       status = b.flight_status + " | Payment Verified";
       color = "green";
     }
-    html += `<tr>
-      <td>${b.from} to ${b.to}</td>
+    html += `<tr class="row-highlight">
+      <td class="pointer" onclick="navigateToTicket(${b.booking_id})">${b.from} to ${b.to}</td>
       <td class="${color}">${status}</td>
       <td>Rs ${b.amount}</td>
       
-      <td>${b.date_time}</td>
+      <td>${b.date_time} ${b.payment_status === "Completed" ? `<button class="down-btn" onclick="downloadBtn(${b.booking_id})">Download Ticket</button><button class="cancel-btn">Cancel Ticket</button>` : `<button class="down-btn yellow yellow-back" onclick='retryPayment("${b.order_id}" , ${b.amount})'>Retry Payment</button>`}</td>
     </tr>`;
   });
   html += '</table>';
   return html;
 }
+
+
 </script>
 
 </body>

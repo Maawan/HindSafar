@@ -9,6 +9,9 @@ $api = new Api($api_key , $api_secret);
 
 require './backend/Database/db.php';
 
+require_once "./backend/services/messages/templates/flight-templates.php";
+require_once "./vendor/autoload.php";
+
 $success = true;
 $error = null;
 
@@ -38,6 +41,22 @@ if($success){
     $amount_paid = $payment->amount / 100;
     $stmt = $pdo->prepare("UPDATE payments SET payment_status = 'Completed' WHERE razorpay_order_id = ?");
     $stmt->execute([$orderId]);
+    $stmt = $pdo->prepare("SELECT payment_id FROM payments WHERE razorpay_order_id = ?");
+    $stmt->execute([$orderId]);
+    $payment_row = $stmt->fetch();
+    if ($payment_row) {
+        $paymentt_id = $payment_row['payment_id'];
+        //echo $payment_id;
+        // Update flight_bookings status to Confirmed
+        $stmt = $pdo->prepare("UPDATE flight_bookings SET status = 'Confirmed' WHERE payment_id = ?");
+        $stmt->execute([$paymentt_id]);
+        
+        confirmFlightBooking($paymentt_id , "ooo");
+    }
+    //sendSms("+917351776937" , "Your Flight Booking is completed :HindSafar Pvt Ltd")
+    
+
+
     ?>
 
     <!DOCTYPE html>
@@ -63,11 +82,11 @@ if($success){
             }
             .success-container i {
                 font-size: 60px;
-                color: green;
+                color: #0052CC;
             }
             .success-container h2 {
                 margin-top: 20px;
-                color: green;
+                color: #0052CC;
             }
             .success-container p {
                 font-size: 18px;
@@ -77,13 +96,13 @@ if($success){
                 display: inline-block;
                 margin-top: 20px;
                 padding: 10px 20px;
-                background: green;
+                background:rgb(1, 65, 162);
                 color: white;
                 text-decoration: none;
                 border-radius: 5px;
             }
             .btn:hover {
-                background: darkgreen;
+                background:rgb(2, 40, 96);
             }
         </style>
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
@@ -95,7 +114,7 @@ if($success){
             <p>Thank you for your payment.</p>
             <p><strong>Payment ID:</strong> <?php echo htmlspecialchars($payment_id); ?></p>
             <p><strong>Amount Paid:</strong> ₹<?php echo htmlspecialchars($amount_paid); ?></p>
-            <a href="index.php" class="btn">Go Back Home</a>
+            <a href="./my-bookings.php" class="btn">Go to MyBookings</a>
         </div>
     </body>
     </html>
