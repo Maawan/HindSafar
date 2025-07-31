@@ -93,6 +93,31 @@ if (!$flightID) {
       .a { flex-direction: column; }
       .aa { width: 100%; }
     }
+
+    /* Loading overlay styles */
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
+    }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #004aad;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
   </style>
 </head>
 <body>
@@ -131,14 +156,18 @@ if (!$flightID) {
     </ul>
   </div>
 </div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
   const flightID = "<?php echo $flightID; ?>";
   let passengerIndex = 0;
   let flight = null;
-
-  
 
   async function fetchFlight() {
     try {
@@ -166,7 +195,6 @@ if (!$flightID) {
 
   function renderFlightDetails() {
     const f = flight;
-    console.log(f);
     const allowedCabin = f.cabin_extra_allowed == 1;
     const allowedLuggage = f.luggage_extra_allowed == 1;
 
@@ -183,14 +211,9 @@ if (!$flightID) {
       <p><strong>Arrival:</strong> ${arrTime.toLocaleString()}</p>
       <p><strong>Duration:</strong> ${durationHrs}h ${durationMins}m</p>
       <p><strong>Base Fare:</strong> ₹${f.base_fare.toFixed(2)} per passenger</p>
-      <p><strong>Included:</strong> 
-        ${f.cabin_free_weight}kg 🧳 Cabin, 
-        ${f.luggage_free_weight}kg 🧱 Luggage
-      </p>
-      <p>
-        ${allowedCabin ? `💼 Extra Cabin: ₹${f.cabin_extra_price}/kg` : `❌ Extra Cabin Not Allowed`} &nbsp;&nbsp;
-        ${allowedLuggage ? `📦 Extra Luggage: ₹${f.luggage_extra_price}/kg` : `❌ Extra Luggage Not Allowed`}
-      </p>
+      <p><strong>Included:</strong> ${f.cabin_free_weight}kg 🧳 Cabin, ${f.luggage_free_weight}kg 🧱 Luggage</p>
+      <p>${allowedCabin ? `💼 Extra Cabin: ₹${f.cabin_extra_price}/kg` : `❌ Extra Cabin Not Allowed`} &nbsp;&nbsp;
+         ${allowedLuggage ? `📦 Extra Luggage: ₹${f.luggage_extra_price}/kg` : `❌ Extra Luggage Not Allowed`}</p>
     `;
   }
 
@@ -205,36 +228,12 @@ if (!$flightID) {
     div.id = `passenger-${index}`;
     div.innerHTML = `
       <div class="a">
-        <div class="aa">
-          <label>Name</label>
-          <input name="passenger[${index}][name]" required />
-        </div>
-        <div class="aa">
-          <label>Gender</label>
-          <select name="passenger[${index}][gender]">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-        </div>
-        <div class="aa">
-          <label>Age</label>
-          <input type="number" name="passenger[${index}][age]" required />
-        </div>
-        <div class="aa">
-          <label>Cabin (kg)</label>
-          <input type="number" name="passenger[${index}][cabin]" min="0"
-                 ${disableCabin ? "disabled" : ""}
-                 oninput="calculateCost()" />
-        </div>
-        <div class="aa">
-          <label>Luggage (kg)</label>
-          <input type="number" name="passenger[${index}][luggage]" min="0"
-                 ${disableLuggage ? "disabled" : ""}
-                 oninput="calculateCost()" />
-        </div>
-        <div class="aa delete-btn-container" style="align-self: end;">
-          <button type="button" class="delete-btn" onclick="deletePassenger(${index})">Delete</button>
-        </div>
+        <div class="aa"><label>Name</label><input name="passenger[${index}][name]" required /></div>
+        <div class="aa"><label>Gender</label><select name="passenger[${index}][gender]"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="aa"><label>Age</label><input type="number" name="passenger[${index}][age]" required /></div>
+        <div class="aa"><label>Cabin (kg)</label><input type="number" name="passenger[${index}][cabin]" min="0" ${disableCabin ? "disabled" : ""} oninput="calculateCost()" /></div>
+        <div class="aa"><label>Luggage (kg)</label><input type="number" name="passenger[${index}][luggage]" min="0" ${disableLuggage ? "disabled" : ""} oninput="calculateCost()" /></div>
+        <div class="aa delete-btn-container" style="align-self: end;"><button type="button" class="delete-btn" onclick="deletePassenger(${index})">Delete</button></div>
       </div>
       <div class="cost-breakdown" id="cost-${index}">Cost: ₹0</div>
       <div class="divider"></div>
@@ -257,7 +256,6 @@ if (!$flightID) {
   function updateDeleteButtons() {
     const passengers = document.querySelectorAll("#passengerContainer > div");
     const deleteButtons = document.querySelectorAll(".delete-btn");
-
     if (passengers.length <= 1) {
       deleteButtons.forEach(btn => btn.style.display = "none");
     } else {
@@ -266,70 +264,62 @@ if (!$flightID) {
   }
 
   async function proceedToPay() {
-  // Gather passenger data
-  const form = document.getElementById("passengerForm");
-  const data = new FormData(form);
-  const passengers = [];
+    document.getElementById("loadingOverlay").style.display = "flex"; // show loading
 
-  for (let i = 0; i < passengerIndex; i++) {
-    const passengerDiv = document.getElementById(`passenger-${i}`);
-    if (!passengerDiv) continue;
+    const form = document.getElementById("passengerForm");
+    const data = new FormData(form);
+    const passengers = [];
 
-    passengers.push({
-      name: data.get(`passenger[${i}][name]`),
-      gender: data.get(`passenger[${i}][gender]`),
-      age: data.get(`passenger[${i}][age]`),
-      cabin: data.get(`passenger[${i}][cabin]`) || 0,
-      luggage: data.get(`passenger[${i}][luggage]`) || 0
-    });
-  }
-  // Prepare final order data
-  const orderData = {
-    flight_id: flightID,
-    passengers: passengers,
-    totalAmount: parseFloat(document.getElementById("totalCost").innerText.replace("₹","").replace(",",""))
-  };
-
-  console.log("Sending order data to backend:", orderData);
-
-  try {
-    const res = await fetch("../backend/api/flights/initiate_booking.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderData)
-    });
-
-    const result = await res.json();
-    console.log("Order API Response:", result);
-
-    if (result.success) {
-      // Redirect to payment or initiate payment logic here
-      //alert("Order created. Proceeding to payment...");
-      console.log("amount" + " " + result.amount);
-      
-      let options = {
-        key : "rzp_test_tN2HjlxfDwX4rW",
-        amount : result.amount,
-        currency : "INR",
-        name : "HindSafar Online Booking Pvt Ltd",
-        description : "Pay for your order",
-        order_id : result.payment_id,
-        callback_url : "http://localhost/Hindsafar/verify.php"
-      }
-      let rzp = new Razorpay(options);
-      rzp.open();
-
-
-    } else {
-      alert("Failed to create order: " + (result.message || "Unknown error"));
+    for (let i = 0; i < passengerIndex; i++) {
+      const passengerDiv = document.getElementById(`passenger-${i}`);
+      if (!passengerDiv) continue;
+      passengers.push({
+        name: data.get(`passenger[${i}][name]`),
+        gender: data.get(`passenger[${i}][gender]`),
+        age: data.get(`passenger[${i}][age]`),
+        cabin: data.get(`passenger[${i}][cabin]`) || 0,
+        luggage: data.get(`passenger[${i}][luggage]`) || 0
+      });
     }
 
-  } catch (err) {
-    console.error(err);
-    alert("Error while creating order. Please try again." + err);
-  }
-}
+    const orderData = {
+      flight_id: flightID,
+      passengers: passengers,
+      totalAmount: parseFloat(document.getElementById("totalCost").innerText.replace("₹","").replace(",",""))
+    };
 
+    try {
+      const res = await fetch("../backend/api/flights/initiate_booking.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData)
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        let options = {
+          key : "rzp_test_tN2HjlxfDwX4rW",
+          amount : result.amount,
+          currency : "INR",
+          name : "HindSafar Online Booking Pvt Ltd",
+          description : "Pay for your order",
+          order_id : result.payment_id,
+          callback_url : "http://localhost/Hindsafar/verify.php"
+        }
+        let rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        alert("Failed to create order: " + (result.message || "Unknown error"));
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Error while creating order. Please try again." + err);
+    }
+
+    document.getElementById("loadingOverlay").style.display = "none"; // hide loading
+  }
 
   function calculateCost() {
     const form = document.getElementById("passengerForm");

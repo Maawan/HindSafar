@@ -5,6 +5,9 @@ require_once __DIR__ . '/../../../../vendor/autoload.php';
 require_once __DIR__ . '/../sms_helper.php';
 use Twilio\Rest\Client;
 
+use Aws\Sns\SnsClient;
+use Aws\Exception\AwsException;
+
 function confirmFlightBooking($payment_id , $s) {
     global $pdo; // Ensure PDO is accessible within function
 
@@ -64,7 +67,26 @@ function confirmFlightBooking($payment_id , $s) {
     $userName = $user_row['NAME'];
     $phone = $user_row['CONTACT_NUMBER'];
     $message .= "Thank you " . $userName . " for choosing HindSafar.";
-    sendSms($phone, $message);
+    //sendSms($phone, $message);
+
+    $SnSclient = new SnsClient([
+        'region'  => 'ap-south-1', // Choose your region that supports SMS, e.g., ap-south-1 (Mumbai)
+        'version' => 'latest',
+        'credentials' => [
+            'key'    => 'AKIAVIS2447YSOGUV7TM',
+            'secret' => 'zLpnoEgrWex7IGYRbhNXjUCCJt78DuAX6QYFT1Ht',
+        ],
+        'suppress_php_deprecation_warning' => true
+    ]);
+    try {
+        $result = $SnSclient->publish([
+            'Message' => $message,
+            'PhoneNumber' => str_replace("+", "", $phone),
+        ]);
+        //echo "Message sent! Message ID: " . $result['MessageId'] . "\n";
+    } catch (AwsException $e) {
+        //echo "Error sending SMS: " . $e->getMessage() . "\n";
+    }
 
 }
 // confirmFlightBooking(10,10);

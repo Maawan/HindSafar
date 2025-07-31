@@ -192,7 +192,7 @@ $name = $_SESSION['name'];
     <div class="card">
       <h3>🏨 Hotel Booking</h3>
       <p>Find hotels, compare prices, and book rooms with ease.</p>
-      <button onclick="goTo('hotels.php')">Book Hotel</button>
+      <button onclick="goTo('search-hotels.php')">Book Hotel</button>
     </div>
 
     <div class="card">
