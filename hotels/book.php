@@ -43,6 +43,13 @@ $name = $_SESSION['name'];
 </div>
 
 <script>
+
+    function confirm_btn(e , data){
+        e.preventDefault();
+        console.log("mar gai ");
+        console.log(data);
+        
+    }   
 async function fetchBookingDetails() {
     const params = new URLSearchParams(window.location.search);
     const hotel_id = params.get("hotel_id");
@@ -65,6 +72,7 @@ async function fetchBookingDetails() {
         no_of_rooms: rooms
     };
 
+    
     try {
         const response = await fetch('../backend/api/hotels/prebook.php', {
             method: 'POST',
@@ -77,7 +85,7 @@ async function fetchBookingDetails() {
 
         if (!result.success) {
             alert(result.message || "Rooms not available. Redirecting back.");
-            window.location.href = "hotels.php";
+           // window.location.href = "hotels.php";
             return;
         }
 
@@ -121,24 +129,35 @@ async function fetchBookingDetails() {
                 <p>By confirming this booking, you agree to HindSafar's booking and cancellation policies. Please review your booking details carefully before proceeding to payment.</p>
             </div>
 
-            <form action="confirm_booking.php" method="POST">
+            <form>
                 <input type="hidden" name="hotel_id" value="${data.hotel_id}">
                 <input type="hidden" name="room_type_id" value="${data.room_type_id}">
                 <input type="hidden" name="checkin_date" value="${data.checkin_date}">
                 <input type="hidden" name="checkout_date" value="${data.checkout_date}">
                 <input type="hidden" name="rooms" value="${data.no_of_rooms}">
                 <input type="hidden" name="total_price" value="${data.total_cost}">
-                <button type="submit" class="confirm-btn">Confirm Booking & Proceed to Payment</button>
+                <button  class="confirm-btn" id="confirmBookingBtn">Confirm Booking & Proceed to Payment</button>
             </form>
         `;
+
+        document.getElementById("confirmBookingBtn").addEventListener('click' , function(e){
+            e.preventDefault();
+            console.log(data);
+            
+            
+        })
+
     } catch (error) {
         console.error("Error fetching booking details:", error);
         alert("Something went wrong. Redirecting back.");
-        window.location.href = "hotels.php";
+        // window.location.href = "hotels.php";
     }
 }
 
 fetchBookingDetails();
+
+
+
 </script>
 
 </body>

@@ -139,6 +139,7 @@ $name = $_SESSION['name'];
                 <option value="Bangalore">
                 <option value="Hyderabad">
                 <option value="Chennai">
+                <option value="Shimla">
             </datalist>
         </div>
 
@@ -190,7 +191,7 @@ document.getElementById("hotelForm").addEventListener("submit", function(e) {
     const resultContainer = document.getElementById("results");
 
     // Validation checks
-    const validCities = ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai"];
+    const validCities = ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai","Shimla"];
     if (!validCities.includes(city)) {
         alert("Please select a valid city from the suggestions.");
         return;

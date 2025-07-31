@@ -73,11 +73,11 @@ $hotel_address = $room_data['address'];
 // Check availability for all dates in range
 $available = true;
 $date = $checkin_date;
-
+// echo $hotel_name;
 while (strtotime($date) < strtotime($checkout_date)) {
-    $avail_query = "SELECT available_rooms FROM hotel_availability WHERE hotel_id = ? AND room_type_id = ? AND date = ?";
+    $avail_query = "SELECT available_rooms FROM hotel_availability WHERE  room_type_id = ? AND date = ?";
     $stmt2 = $conn->prepare($avail_query);
-    $stmt2->bind_param("iis", $hotel_id, $room_type_id, $date);
+    $stmt2->bind_param("ss", $room_type_id, $date);
     $stmt2->execute();
     $avail_res = $stmt2->get_result();
 

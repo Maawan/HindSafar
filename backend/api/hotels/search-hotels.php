@@ -69,9 +69,11 @@ while ($hotel = $hotel_res->fetch_assoc()) {
     $hotel_id = $hotel['hotel_id'];
     $hotel_name = $hotel['name'];
     $address = $hotel['address'];
+    // echo $hotel_name . " " . $hotel_id;
     // Get room types for this hotel matching the given room type
     $roomtype_query = "";
     if($room_type == "all"){
+        // echo " all ";
         $roomtype_query = "SELECT * FROM roomtype WHERE hotel_id = ?";
         $stmt2 = $conn->prepare($roomtype_query);
         $stmt2->bind_param("s", $hotel_id);
@@ -88,15 +90,15 @@ while ($hotel = $hotel_res->fetch_assoc()) {
         $room_type_id = $rtype['room_type_id'];
         $type_name = $rtype['type_name'];
         $price = $rtype['price'];
-
+        // echo $type_name . "-> " . $room_type_id;
         // Check availability for all dates in range
         $date = $checkin_date;
         $available = true;
 
         while (strtotime($date) < strtotime($checkout_date)) {
-            $avail_query = "SELECT available_rooms FROM hotel_availability WHERE hotel_id = ? AND room_type_id = ? AND date = ?";
+            $avail_query = "SELECT available_rooms FROM hotel_availability WHERE room_type_id = ? AND date = ?";
             $stmt3 = $conn->prepare($avail_query);
-            $stmt3->bind_param("iis", $hotel_id, $room_type_id, $date);
+            $stmt3->bind_param("ss", $room_type_id, $date);
             $stmt3->execute();
             $avail_res = $stmt3->get_result();
 
@@ -110,7 +112,7 @@ while ($hotel = $hotel_res->fetch_assoc()) {
                 $available = false;
                 break;
             }
-
+            // Insert into hotel_availability(hotel_id , room_type_id , date , available_rooms) values(1,1,2025-08-01 , 20);
             // Increment date by 1 day
             $date = date('Y-m-d', strtotime($date . ' +1 day'));
         }
