@@ -41,13 +41,45 @@ $name = $_SESSION['name'];
         <p>Loading booking details...</p>
     </div>
 </div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
 
-    function confirm_btn(e , data){
-        e.preventDefault();
-        console.log("mar gai ");
+    async function createOrder(data){
+        
         console.log(data);
+        try{
+            const response = await fetch('../backend/api/hotels/initiate-booking.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log(result);
+
+
+            const razorPayId = result?.booking_id;
+            if (result.success) {
+                let options = {
+                key : "rzp_test_tN2HjlxfDwX4rW",
+                amount : result.amount,
+                currency : "INR",
+                name : "HindSafar Online Booking Pvt Ltd",
+                description : "Pay for your order",
+                order_id : razorPayId,
+                callback_url : "http://localhost/Hindsafar/verify.php"
+                }
+                let rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                alert("Failed to create order: " + (result.message || "Unknown error"));
+            }
+        }catch(error){
+
+        }
+        
+        
         
     }   
 async function fetchBookingDetails() {
@@ -142,7 +174,7 @@ async function fetchBookingDetails() {
 
         document.getElementById("confirmBookingBtn").addEventListener('click' , function(e){
             e.preventDefault();
-            console.log(data);
+            createOrder(data);
             
             
         })

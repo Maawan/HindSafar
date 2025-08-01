@@ -139,7 +139,7 @@ try{
         'success' => true,
         'message' => 'Order Created',
         'booking_id' => $orderId,
-        'payment_id' => $payment_id,
+        'payment_id' => intval($payment_id),
         'amount' => $total_cost
     ]);
     $pdo->commit();

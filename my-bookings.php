@@ -196,92 +196,75 @@ function showTab(tabId) {
   event.target.classList.add('active');
 }
 
-
-
-// Fetch bookings from API (simulate with setTimeout)
 function navigateToHome(){
   window.location.href = "./";
-}
-async function getBookings() {
-  let data = {};
-  let flights = [];
-  let hotels = [];
-  let packages = [];
-  
-
-}
-async function fetchBooking(){
-  const loader = document.getElementById('loader');
-  const content = document.getElementById('content');
-  let flights = [];
-  let hotels = [];
-  let packages = [];
-  const res = await fetch("./backend/api/flights/my-bookings.php",{
-    method : "POST",
-    headers: {"Content-Type" : "application/json"}
-  });
-  flights = await res.json();
-
-  const data = {
-    flights : flights.bookings,
-    hotels,
-    packages
-  }
-  console.log(data);
-  populateBookings(data);
-  loader.classList.add('hidden');
-  content.classList.remove('hidden');
-
 }
 
 window.addEventListener('load', () => {
     fetchBooking();
 });
 
+async function fetchBooking(){
+  const loader = document.getElementById('loader');
+  const content = document.getElementById('content');
+  let bookings = [];
+
+  const res = await fetch("./backend/api/my-bookings.php", {
+    method : "POST",
+    headers: {"Content-Type" : "application/json"}
+  });
+  bookings = await res.json();
+
+  const data = {
+    flights : bookings.flight_bookings,
+    hotels : bookings.hotel_bookings,
+    packages : [] // (replace this when you add real packages)
+  };
+  console.log(data);
+  populateBookings(data);
+  loader.classList.add('hidden');
+  content.classList.remove('hidden');
+}
+
 function populateBookings(data) {
-  // All Bookings
   const all = document.getElementById('all');
   all.innerHTML = buildTable([...data.flights]);
 
-  // Flight Bookings
   const flight = document.getElementById('flight');
   flight.innerHTML = data.flights.length ? buildTable(data.flights) : '<div class="no-booking">No flight bookings.</div>';
 
-  // Hotel Bookings
   const hotel = document.getElementById('hotel');
-  hotel.innerHTML = data.hotels.length ? buildTable(data.hotels) : '<div class="no-booking">No hotel bookings.</div>';
+  hotel.innerHTML = data.hotels.length ? buildHotelTable(data.hotels) : '<div class="no-booking">No hotel bookings.</div>';
 
-  // Package Bookings
   const packageTab = document.getElementById('package');
   packageTab.innerHTML = data.packages.length ? buildTable(data.packages) : '<div class="no-booking">No package bookings.</div>';
 }
 
 function navigateToTicket(bookingId){
   window.location.href = "./my-ticket.php?booking_id=" + bookingId;
-  
 }
 
-function downloadBtn(booking_id){
-  window.location.href = "./generate-ticket.php?booking_id=" + booking_id;
-  console.log("./generate-ticket.php?booking_id=" + booking_id);
+function downloadBtn(booking_id , type){
+  console.log(type);
+  // console.log("kkk");
   
   
+ window.location.href = "./generate-ticket.php?type="+type+"&booking_id=" + booking_id;
 }
-function retryPayment(booking , amount){
-  console.log(booking + " " + typeof amount);
 
+function retryPayment(orderId, amount){
+  console.log(orderId + " " + typeof amount);
   let options = {
-      key : "rzp_test_tN2HjlxfDwX4rW",
-      amount : amount * 100,
-      currency : "INR",
-      name : "HindSafar Online Booking Pvt Ltd",
-      description : "Pay for your order",
-      order_id : booking,
-      callback_url : "http://localhost/Hindsafar/verify.php"
-      }
-      let rzp = new Razorpay(options);
-      rzp.open();
-  
+    key: "rzp_test_tN2HjlxfDwX4rW",
+    amount: amount * 100,
+    currency: "INR",
+    name: "HindSafar Online Booking Pvt Ltd",
+    description: "Pay for your order",
+    order_id: orderId,
+    callback_url: "http://localhost/Hindsafar/verify.php"
+  };
+  let rzp = new Razorpay(options);
+  rzp.open();
 }
 
 function buildTable(bookings) {
@@ -292,27 +275,65 @@ function buildTable(bookings) {
   bookings.forEach(b => {
     let status = "";
     let color = "";
-    if(b.payment_status === "Pending"){
+    if (b.payment_status === "Pending") {
       status = "Payment Pending";
       color = "yellow";
-    }else if(b.payment_status === "Completed"){
+    } else if (b.payment_status === "Completed") {
       status = b.flight_status + " | Payment Verified";
       color = "green";
     }
+    // console.log(b.booking_type);
+    
     html += `<tr class="row-highlight">
       <td class="pointer" onclick="navigateToTicket(${b.booking_id})">${b.from} to ${b.to}</td>
       <td class="${color}">${status}</td>
       <td>Rs ${b.amount}</td>
-      
-      <td>${b.date_time} ${b.payment_status === "Completed" ? `<button class="down-btn" onclick="downloadBtn(${b.booking_id})">Download Ticket</button><button class="cancel-btn">Cancel Ticket</button>` : `<button class="down-btn yellow yellow-back" onclick='retryPayment("${b.order_id}" , ${b.amount})'>Retry Payment</button>`}</td>
+      <td>${b.date_time} ${b.payment_status === "Completed" 
+        ? `<button class="down-btn" onclick="downloadBtn(${b.booking_id} , '${b.booking_type}')">Download Ticket</button><button class="cancel-btn">Cancel Ticket</button>`
+        : `<button class="down-btn yellow yellow-back" onclick='retryPayment("${b.order_id}" , ${b.amount})'>Retry Payment</button>`}
+      </td>
     </tr>`;
   });
   html += '</table>';
   return html;
 }
 
+function buildHotelTable(bookings) {
+  if (!bookings.length) {
+    return '<div class="no-booking">😔 You have no hotel bookings yet.</div>';
+  }
 
+  let html = '<table><tr><th>Hotel</th><th>Status</th><th>Price</th><th>Date</th></tr>';
+
+  bookings.forEach(b => {
+    let status = "";
+    let color = "";
+    if (b.payment_status === "Pending") {
+      status = "Payment Pending";
+      color = "yellow";
+    } else if (b.payment_status === "Completed") {
+      status = "Payment Completed";
+      color = "green";
+    }
+
+    html += `<tr class="row-highlight">
+      <td class="pointer" onclick="navigateToTicket(${b.booking_id})">
+        ${b.Hotel_Name} (${b.Room_Type})<br>${b.Hotel_City}
+      </td>
+      <td class="${color}">${status}</td>
+      <td>Rs ${b.amount}</td>
+      <td>${b.date_time} ${b.payment_status === "Completed"
+        ? `<button class="down-btn" onclick="downloadBtn(${b.booking_id},'${b.booking_type}')">Download Ticket</button><button class="cancel-btn">Cancel Ticket</button>`
+        : `<button class="down-btn yellow yellow-back" onclick='retryPayment("${b.order_id}", ${b.amount})'>Retry Payment</button>`}
+      </td>
+    </tr>`;
+  });
+
+  html += '</table>';
+  return html;
+}
 </script>
+
 
 </body>
 </html>

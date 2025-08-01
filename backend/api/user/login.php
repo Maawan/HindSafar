@@ -7,6 +7,7 @@ require '../../Database/db.php';
 $data = json_decode(file_get_contents("php://input"), true);
 $phone = $data['phone'] ?? '';
 $password = $data['password'] ?? '';
+$type = $data['admin'] ?? '';
 
 if (!$phone || !$password) {
     echo json_encode([
@@ -16,7 +17,7 @@ if (!$phone || !$password) {
     exit;
 }
 
-$stmt = $conn->prepare("SELECT CUSTOMER_ID, NAME, PASSWORD FROM customers WHERE CONTACT_NUMBER = ?");
+$stmt = $conn->prepare("SELECT CUSTOMER_ID, NAME, PASSWORD, ROLE FROM customers WHERE CONTACT_NUMBER = ?");
 $stmt->bind_param("s", $phone);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -35,10 +36,12 @@ if (password_verify($password, $user['PASSWORD'])) {
     $_SESSION['user_id'] = $user['CUSTOMER_ID'];
     $_SESSION['name'] = $user['NAME'];
     $_SESSION['last_activity'] = time();
+    $_SESSION['role'] = $user['ROLE'];
 
     echo json_encode([
         'status' => 'success',
         'message' => 'Login successful',
+        'role' => $user['ROLE'],
         'user' => [
             'id' => $user['CUSTOMER_ID'],
             'name' => $user['NAME']
