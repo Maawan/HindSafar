@@ -108,7 +108,62 @@ while ($row = $result->fetch_assoc()) {
 }
 
 
-echo json_encode(["status" => "success", "flight_bookings" => $flight_bookings , "hotel_bookings"=>$hotel_bookings]);
+
+$sql3 = "SELECT 
+cpb.booking_id as package_id,
+cp.package_name as package_name,
+cp.no_of_days as duration,
+cp.location as destination_location,
+cp.destination_covered as placesToVisit,
+cp.accommodation_included as hotels_included,
+cp.hotel_type as hotel_type,
+cp.location_commute_included as taxi_included,
+cp.flights_included as flights_included,
+cp.commute_airport_included as pick_from_home_included,
+cp.meals_included as meals_included,
+cp.no_of_persons as no_of_persons,
+cp.price as price,
+cp.package_images as images,
+cpb.startDate as startDate,
+cpb.amount as amount,
+p.razorpay_order_id as order_id,
+p.payment_status as payment_status
+from custom_packages cp, custom_packages_bookings cpb , payments p
+where cpb.package_id = cp.package_id AND
+p.payment_id = cpb.payment_id AND cpb.user_id = ? order by cpb.startDate desc";
+
+$stmt = $conn->prepare($sql3);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$package_bookings = [];
+while ($row = $result->fetch_assoc()) {
+    $package_bookings[] = [
+        "booking_id" => $row['package_id'],
+        "package_name" => $row['package_name'],
+        "duration" => $row['duration'],
+        "destination_location" => $row['destination_location'],
+        "placesToVisit" => $row['placesToVisit'],
+        "hotels_included" => $row['hotels_included'],
+        "hotel_type" => $row['hotel_type'],
+        "taxi_included" => $row['taxi_included'],
+        "flights_included" => $row['flights_included'],
+        "pick_from_home_included" => $row['pick_from_home_included'],
+        "no_of_persons" => $row['no_of_persons'],
+        "price" => $row['price'],
+        "images" => $row['images'],
+        "startDate" => $row['startDate'],
+        "amount" => $row['amount'],
+        "payment_status" => $row['payment_status'],
+        "order_id" => $row['order_id'],
+        "booking_type" => "package"
+        
+
+    ];
+}
+
+
+echo json_encode(["status" => "success", "flight_bookings" => $flight_bookings , "hotel_bookings"=>$hotel_bookings , "package_bookings" => $package_bookings]);
 
 $stmt->close();
 $conn->close();

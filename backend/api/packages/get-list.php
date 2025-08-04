@@ -9,7 +9,7 @@ if ($conn->connect_error) {
   exit();
 }
 
-$sql = "SELECT * FROM custom_packages ORDER BY category";
+$sql = "SELECT * FROM custom_packages where is_active = 1 ORDER BY category";
 $result = $conn->query($sql);
 
 $grouped = [];

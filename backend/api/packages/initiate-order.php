@@ -9,17 +9,17 @@ if (!isset($_SESSION['user_id'])) {
     echo json_encode(["error" => "User not logged in..."]);
     exit();
 }
-
+$data = json_decode(file_get_contents("php://input"), true);
 // Check required fields
-echo $_POST['package_id'];
-if (!isset($_POST['package_id']) || !isset($_POST['start_date'])) {
+// echo $_POST['package_id'];
+if (!isset($data['package_id']) || !isset($data['start_date'])) {
     http_response_code(400); // Bad request
     echo json_encode(["error" => "Missing required fields."]);
     exit();
 }
 
-$package_id = intval($_POST['package_id']);
-$start_date = $_POST['start_date'];
+$package_id = intval($data['package_id']);
+$start_date = $data['start_date'];
 $user_id = $_SESSION['user_id'];
 
 // Optional: validate date format
@@ -39,17 +39,18 @@ try{
         throw new Exception("Invalid Package ID");
     }
     $totalAmount = $package['price'];
+    // echo "Amount is " . $totalAmount;
     $api_key = 'rzp_test_tN2HjlxfDwX4rW';
     $api_secret = '5wjPwOMcdSgsbG1dZTvQCqBq';
     $api = new Api($api_key , $api_secret);
     
     $order = $api->order->create([
-        'amount' => $$totalAmount * 100,
+        'amount' => $totalAmount * 100,
         'currency' => 'INR',
     ]);
     $orderId = $order->id;
     $stmt = $pdo->prepare("INSERT INTO payments (amount, method, payment_status , razorpay_order_id) VALUES (?, 'Razorpay', 'Pending' , ?)");
-    $stmt->execute([$backendTotal , $orderId]);
+    $stmt->execute([$totalAmount , $orderId]);
     $payment_id = $pdo->lastInsertId();
 
     $stmt = $pdo->prepare("INSERT INTO custom_packages_bookings(package_id,startDate,payment_id,amount,user_id) VALUES(?,?,?,?,?)");
@@ -63,10 +64,12 @@ try{
         'message' => 'Order created',
         'booking_id' => $booking_id,
         'payment_id' => $orderId,
-        'amount' => $backendTotal
+        'amount' => $totalAmount
     ]);
+    $pdo->commit();
 
 }catch(Exception $e){
+    echo "error";
     $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Cannot create order: ' . $e->getMessage()]);

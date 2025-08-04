@@ -67,7 +67,7 @@ $name = $_SESSION['name'];
           name : "HindSafar Online Booking Pvt Ltd",
           description : "Pay for your order",
           order_id : razorPayId,
-          callback_url : "http://localhost/Hindsafar/verify.php"
+          callback_url : "http://localhost/Hindsafar/verify.php?type=hotel"
         }
         let rzp = new Razorpay(options);
         rzp.open();

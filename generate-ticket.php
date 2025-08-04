@@ -24,15 +24,21 @@ ob_start();
 <head>
     <title>Ticket PDF</title>
     <style>
-        body { font-family: Arial, sans-serif; }
+        body { font-family: Arial, sans-serif; color: #333; }
         .container { max-width: 800px; margin: auto; border: 1px solid #ccc; padding: 20px; }
         h2 { border-bottom: 1px solid #333; padding-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .header-logo { text-align: center; margin-bottom: 20px; }
+        .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
     </style>
 </head>
 <body>
 <div class="container">
+
+<div class="header-logo">
+    <img src="https://res.cloudinary.com/duklzb1ww/image/upload/v1754343126/logo_qcve8t.png" alt="HindSafar Logo" height="60" />
+</div>
 
 <?php
 
@@ -61,7 +67,6 @@ if ($type === 'flight') {
     }
 
     echo "<h2>Flight Ticket Details</h2>";
-
     echo "<h3>Booking Information</h3><table>
         <tr><td>Booking ID</td><td>{$booking['booking_id']}</td></tr>
         <tr><td>Status</td><td>{$booking['status']}</td></tr>
@@ -109,9 +114,8 @@ if ($type === 'flight') {
         hb.rooms_booked as rooms_booked,
         hb.check_in_date as checkin_date,
         hb.check_out_date as checkout_date,
-        p.razorpay_order_id as razorpay_id,
-        p.amount as amount,
         p.razorpay_order_id as order_id,
+        p.amount as amount,
         p.payment_status as payment_status,
         hb.created_at as orderDateAndTime
         FROM hotels h, hotel_bookings hb , roomtype rt, payments p
@@ -127,7 +131,6 @@ if ($type === 'flight') {
     }
 
     echo "<h2>Hotel Booking Details</h2>";
-
     echo "<h3>Booking Information</h3><table>
         <tr><td>Booking ID</td><td>{$hotel_booking['booking_id']}</td></tr>
         <tr><td>Check-In</td><td>{$hotel_booking['checkin_date']}</td></tr>
@@ -149,11 +152,66 @@ if ($type === 'flight') {
         <tr><td>Booked At</td><td>{$hotel_booking['orderDateAndTime']}</td></tr>
     </table>";
 
+} else if ($type === 'package') {
+    // === PACKAGE BOOKING LOGIC ===
+    $stmt = $pdo->prepare("SELECT 
+        cp.package_id, cp.package_name, cp.no_of_days as duration,
+        cp.location as destination_location, cp.destination_covered as placesToVisit,
+        cp.accommodation_included as hotels_included, cp.hotel_type,
+        cp.location_commute_included as taxi_included, cp.flights_included,
+        cp.commute_airport_included as pick_from_home_included,
+        cp.meals_included, cp.no_of_persons, cp.price,
+        cpb.startDate, cpb.amount,
+        cpb.user_id, cpb.booking_id,
+        p.razorpay_order_id as order_id, p.payment_status
+        FROM custom_packages cp, custom_packages_bookings cpb, payments p
+        WHERE cp.package_id = cpb.package_id 
+        AND cpb.payment_id = p.payment_id
+        AND cpb.booking_id = ?");
+    $stmt->execute([$booking_id]);
+    $package = $stmt->fetch();
+
+    if (!$package) die("Package booking not found.");
+
+    if ($package['payment_status'] !== 'Completed' || $_SESSION['user_id'] !== $package['user_id']) {
+        die("Unauthorized or unpaid booking.");
+    }
+
+    echo "<h2>Custom Travel Package Ticket</h2>";
+    echo "<h3>Booking Information</h3><table>
+        <tr><td>Booking ID</td><td>{$package['booking_id']}</td></tr>
+        <tr><td>Start Date</td><td>{$package['startDate']}</td></tr>
+        <tr><td>Package Name</td><td>{$package['package_name']}</td></tr>
+        <tr><td>Duration</td><td>{$package['duration']} days</td></tr>
+        <tr><td>Persons</td><td>{$package['no_of_persons']}</td></tr>
+    </table>";
+
+    echo "<h3>Package Inclusions</h3><table>
+        <tr><td>Destination</td><td>{$package['destination_location']}</td></tr>
+        <tr><td>Places to Visit</td><td>{$package['placesToVisit']}</td></tr>
+        <tr><td>Accommodation</td><td>{$package['hotels_included']} (Type: {$package['hotel_type']})</td></tr>
+        <tr><td>Flights Included</td><td>{$package['flights_included']}</td></tr>
+        <tr><td>Local Commute</td><td>{$package['taxi_included']}</td></tr>
+        <tr><td>Pickup from Home</td><td>{$package['pick_from_home_included']}</td></tr>
+        <tr><td>Meals Included</td><td>{$package['meals_included']}</td></tr>
+    </table>";
+
+    echo "<h3>Payment Information</h3><table>
+        <tr><td>Amount</td><td>Rs. {$package['amount']}</td></tr>
+        <tr><td>Status</td><td>{$package['payment_status']}</td></tr>
+        <tr><td>Payment Reference No</td><td>{$package['order_id']}</td></tr>
+    </table>";
+
 } else {
     die("Invalid ticket type.");
 }
-
 ?>
+
+<div class="footer">
+    HindSafar – K-41 Clement Town, Dehradun, India<br/>
+    Thank you for booking with us.
+</div>
+
 </div>
 </body>
 </html>

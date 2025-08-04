@@ -29,7 +29,7 @@ if (!$user_id || !isset($_SESSION['name'])) {
   <main class="max-w-5xl mx-auto px-4 space-y-6" id="package-details">
     <div class="text-center py-10 text-gray-500">Loading package details...</div>
   </main>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     const packageId = <?= $packageId ?>;
 
@@ -125,10 +125,21 @@ if (!$user_id || !isset($_SESSION['name'])) {
                 body: JSON.stringify(object)
             });
          const result = await res.json();
-         if(result.success){
-            console.log(result);
-            
-         }
+         if (result.success) {
+                let options = {
+                key : "rzp_test_tN2HjlxfDwX4rW",
+                amount : result.amount,
+                currency : "INR",
+                name : "HindSafar Online Booking Pvt Ltd",
+                description : "Pay for your order",
+                order_id : result.payment_id,
+                callback_url : "http://localhost/Hindsafar/verify.php?type=package"
+                }
+                let rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                alert("Failed to create order: " + (result.message || "Unknown error"));
+            }
       }catch(error){
 
       }

@@ -5,12 +5,13 @@ require '../../Database/db.php';
 session_start();
 
 $data = json_decode(file_get_contents("php://input"), true);
-
+require_once '../../services/emails/sendMail.php';
 $phone = $data['phone'] ?? '';
 $password = $data['password'] ?? '';
 $name = $data['name'] ?? '';
+$email = $data['email'] ?? '';
 
-if (!$name || !$phone || !$password) {
+if (!$name || !$phone || !$password || !$email) {
     echo json_encode([
         'status' => 'error',
         'message' => 'All fields are required'
@@ -38,8 +39,8 @@ $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 $dateCreated = date('Y-m-d');
 $timeCreated = date('H:i:s');
 
-$stmt = $conn->prepare("INSERT INTO customers (NAME, CONTACT_NUMBER, PASSWORD, DATE_CREATED, DAY_TIME) VALUES (?, ?, ?, ?, ?)");
-$stmt->bind_param("sssss", $name, $phone, $hashedPassword, $dateCreated, $timeCreated);
+$stmt = $conn->prepare("INSERT INTO customers (NAME, CONTACT_NUMBER, PASSWORD, DATE_CREATED, DAY_TIME , email) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("ssssss", $name, $phone, $hashedPassword, $dateCreated, $timeCreated, $email);
 
 if ($stmt->execute()) {
     $user_id = $stmt->insert_id; // get the auto-incremented CUSTOMER_ID
@@ -47,7 +48,7 @@ if ($stmt->execute()) {
     $_SESSION['user_id'] = $user_id;
     $_SESSION['name'] = $name;
     $_SESSION['last_activity'] = time();
-
+    sendWelcomeMail($email , $name);
     echo json_encode([
         'status' => 'success',
         'message' => 'Signup successful',

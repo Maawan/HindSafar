@@ -21,7 +21,7 @@ if (!$flightID) {
     <title>Confirm Your Booking</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-200">
 <div class="container mx-auto py-10 px-4">
     <h1 class="text-2xl font-bold mb-6">Complete your booking</h1>
 
@@ -111,6 +111,39 @@ if (!$flightID) {
         </div>
     </div>
 </div>
+<footer class="bg-white mt-12 pt-10 pb-6 border-t">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-6 text-sm text-gray-600">
+          <div>
+            <img src="../assets/images/logo.png" class="h-10 mb-5" alt="" srcset="">
+            <p>Your one-stop travel solution for booking flights, hotels, and custom travel packages.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Explore</h4>
+            <ul class="space-y-1">
+              <li><a href="?tab=flights" class="hover:text-primary">Flights</a></li>
+              <li><a href="?tab=hotels" class="hover:text-primary">Hotels</a></li>
+              <li><a href="?tab=packages" class="hover:text-primary">Packages</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Company</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">About Us</a></li>
+              <li><a href="#" class="hover:text-primary">Contact</a></li>
+              <li><a href="#" class="hover:text-primary">Terms & Conditions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Follow Us</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">Instagram</a></li>
+              <li><a href="#" class="hover:text-primary">Facebook</a></li>
+              <li><a href="#" class="hover:text-primary">Twitter</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="text-center text-xs text-gray-400 mt-6">&copy; <?= date('Y') ?> HindSafar. All rights reserved.</div>
+      </footer>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
@@ -298,7 +331,7 @@ if (!$flightID) {
                 name : "HindSafar Online Booking Pvt Ltd",
                 description : "Pay for your order",
                 order_id : result.payment_id,
-                callback_url : "http://localhost/Hindsafar/verify.php"
+                callback_url : "http://localhost/Hindsafar/verify.php?type=flight"
                 }
                 let rzp = new Razorpay(options);
                 rzp.open();

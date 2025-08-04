@@ -45,9 +45,9 @@
     }
 
     function renderPackageCard(pkg) {
-      const banner = (pkg.banner && pkg.banner !== "null") 
-        ? pkg.banner 
-        : "https://via.placeholder.com/300x160?text=No+Banner";
+      const banner = (pkg.package_images && pkg.package_images !== "null") 
+        ? pkg.package_images 
+        : "https://png.pngtree.com/png-clipart/20230917/original/pngtree-no-image-available-icon-flatvector-illustration-thumbnail-graphic-illustration-vector-png-image_12323920.png";
 
       const includes = [];
       if (pkg.flights_included === "1") includes.push("✈️ Flights");
