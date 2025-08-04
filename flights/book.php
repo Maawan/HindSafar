@@ -1,360 +1,320 @@
 <?php
 session_start();
-$user_id = $_SESSION['user_id'];
-if (!isset($_SESSION['name']) || !isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit();
+$user_id = $_SESSION['user_id'] ?? null;
+if (!$user_id || !isset($_SESSION['name'])) {
+    header("Location: /HindSafar/login.html");
+    exit();
 }
 
 $flightID = $_GET['fl'] ?? '';
 if (!$flightID) {
-  echo "<script>alert('Missing flight ID. Redirecting...'); window.location.href='flights.php';</script>";
-  exit();
+    echo "<script>alert('Missing flight ID. Redirecting...'); window.location.href='flights.php';</script>";
+    exit();
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Book Flight – <?php echo htmlspecialchars($flightID); ?></title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #eef4ff;
-      color: #333;
-    }
-    .navbar {
-      background-color: #004aad;
-      padding: 1rem 2rem;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    h2, h3 { color: #004aad; }
-    .a {
-      margin-top: 15px;
-      display: flex;
-      flex-wrap: wrap;
-    }
-    .aa {
-      margin: 10px;
-      display: flex;
-      flex-direction: column;
-    }
-    .aa input, .aa select {
-      margin-top: 5px;
-      padding: 4px;
-    }
-    .cost-breakdown {
-      background: #f1f8ff;
-      padding: 1rem;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .add-btn, .book-btn, .delete-btn {
-      background-color: #004aad;
-      color: white;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 1rem;
-    }
-    .divider {
-      margin: 1rem 0;
-      height: 1px;
-      background-color: #ccc;
-    }
-    .terms {
-      background: #f9f9f9;
-      padding: 1rem;
-      border-radius: 6px;
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-    .terms h4 {
-      margin-top: 0;
-      color: #004aad;
-    }
-    @media only screen and (max-width: 600px) {
-      .a { flex-direction: column; }
-      .aa { width: 100%; }
-    }
-
-    /* Loading overlay styles */
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      display: none;
-    }
-    .spinner {
-      border: 8px solid #f3f3f3;
-      border-top: 8px solid #004aad;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Confirm Your Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100">
+<div class="container mx-auto py-10 px-4">
+    <h1 class="text-2xl font-bold mb-6">Complete your booking</h1>
 
-<div class="navbar">
-  <h3>HindSafar – Book Flight <?php echo htmlspecialchars($flightID); ?></h3>
-  <div>👤 <?php echo htmlspecialchars($_SESSION['name']); ?></div>
+    <div class="md:flex md:gap-6">
+        <!-- Left: Flight Summary + Passenger Details -->
+        <div class="md:w-2/3 flex flex-col gap-6">
+
+            <!-- Flight Summary -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 id="route" class="text-xl font-bold">Loading...</h2>
+                        <p id="dateAndDuration" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-2">
+                    <img id="logoo" src="https://logos-world.net/wp-content/uploads/2023/01/SpiceJet-Logo.jpg" class="w-6 h-6" alt="Airline Logo">
+                    <span id="airlineName" class="font-semibold"></span>
+                    <span id="flightCode" class="text-gray-500"></span>
+                </div>
+
+                <div class="border rounded-lg p-4 bg-gray-50 mb-3">
+                    <div class="flex justify-between">
+                        <div>
+                            <p id="depTime" class="font-semibold"></p>
+                            <p id="fromCity" class="text-sm text-gray-500"></p>
+                        </div>
+                        <div class="text-center text-sm text-gray-600" id="flightDuration"></div>
+                        <div>
+                            <p id="arrTime" class="font-semibold"></p>
+                            <p id="toCity" class="text-sm text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 text-sm text-gray-700 mb-3">
+                    <div>🧳 <strong>Cabin Baggage:</strong> <span id="cabinFree">-</span> Kg / Adult</div>
+                    <div>🛄 <strong>Check-In Luggage:</strong> <span id="luggageFree">-</span> Kg / Adult</div>
+                </div>
+
+                <div class="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg">
+                    Got excess baggage? Don’t stress, buy extra check-in baggage allowance from passenger list.
+                </div>
+            </div>
+
+            <!-- Passenger Form -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4">Passenger Details</h3>
+                <form id="passengerForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" name="name" placeholder="Full Name" class="border rounded-lg px-4 py-2 w-full" required />
+                        <input type="number" name="age" placeholder="Age" class="border rounded-lg px-4 py-2 w-full" required />
+                        <select name="gender" class="border rounded-lg px-4 py-2 w-full" required>
+                            <option value="">Select Gender</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 mt-2 md:grid-cols-2 gap-4">
+                        <input type="number" name="cabin" id="cabinInput" placeholder="Cabin Baggage (Kg)" class="border rounded-lg px-4 py-2 w-full" />
+                        <input type="number" name="checkin" id="checkinInput" placeholder="Check-in Luggage (Kg)" class="border rounded-lg px-4 py-2 w-full" />
+                    </div>
+                    <button type="submit" class="bg-blue-600 mt-4 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add Passenger</button>
+                </form>
+                <ul id="passengerList" class="mt-6 space-y-3"></ul>
+            </div>
+        </div>
+
+        <!-- Right: Fare Summary -->
+        <div class="md:w-1/3">
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6 md:mt-0">
+                <h4 class="text-lg font-bold mb-4">Fare Summary</h4>
+                <div class="flex justify-between mb-2">
+                    <span>Base Fare</span><span id="baseFare">₹0.00</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span>Extra weight cost</span><span id="extraCharge">₹0.00</span>
+                </div>
+                <hr class="my-2">
+                <div class="flex justify-between text-lg font-bold">
+                    <span>Total Amount</span><span id="totalFare">₹0.00</span>
+                </div>
+                <button class="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold" onclick="pay()">Proceed to Pay</button>
+            </div>
+        </div>
+    </div>
 </div>
-
-<div class="container">
-  <h2>Flight Details</h2>
-  <div id="flightDetails">Loading flight data...</div>
-
-  <h2>Add Passengers</h2>
-  <form id="passengerForm">
-    <div id="passengerContainer"></div>
-    <button type="button" class="add-btn" onclick="addPassenger()">+ Add Passenger</button>
-  </form>
-
-  <h3>Total Cost</h3>
-  <div class="cost-breakdown" id="totalCost">₹0</div>
-
-  <button class="book-btn" onclick="proceedToPay()">Proceed to Pay</button>
-
-  <div class="terms">
-    <h4>Terms & Conditions</h4>
-    <ul>
-      <li>All bookings are non-refundable unless specified as refundable in fare rules.</li>
-      <li>Name changes on tickets are not permitted after booking confirmation.</li>
-      <li>Extra baggage allowance is subject to airline policies and availability.</li>
-      <li>Check-in counters close 45 minutes prior to departure for domestic flights.</li>
-      <li>Government-issued photo ID is mandatory during check-in.</li>
-      <li>In case of flight cancellation by airline, refund will be processed as per airline policy within 7-14 working days.</li>
-      <li>Travel insurance, if purchased, is provided by third-party providers. Please read their policy documents carefully.</li>
-      <li>By proceeding, you agree to the airline’s Conditions of Carriage and HindSafar booking policies.</li>
-    </ul>
-  </div>
-</div>
-
-<!-- Loading overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-</div>
-
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-  const flightID = "<?php echo $flightID; ?>";
-  let passengerIndex = 0;
-  let flight = null;
+    const flightID = "<?php echo $flightID; ?>";
+    let flight;
+    let extraCharge = 0;
+    let passengerCount = 0;
+    let passengers = [];
+    let tot = 0;
 
-  async function fetchFlight() {
-    try {
-      const res = await fetch("../backend/api/flights/flight_details.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flightID })
-      });
-      flight = await res.json();
 
-      if (flight.error) {
-        alert(flight.error);
-        window.location.href = "flights.php";
-        return;
-      }
 
-      renderFlightDetails();
-      addPassenger(); // default 1
+    async function fetchFlight() {
+        try {
+            const res = await fetch("../backend/api/flights/flight_details.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ flightID })
+            });
+            flight = await res.json();
 
-    } catch (err) {
-      console.error(err);
-      document.getElementById("flightDetails").innerText = "Failed to load flight details.";
-    }
-  }
+            if (flight.error) {
+                alert(flight.error);
+                window.location.href = "flights.php";
+                return;
+            }
 
-  function renderFlightDetails() {
-    const f = flight;
-    const allowedCabin = f.cabin_extra_allowed == 1;
-    const allowedLuggage = f.luggage_extra_allowed == 1;
-
-    const depTime = new Date(f.dep_time);
-    const arrTime = new Date(f.arrival_time);
-    const durationMs = arrTime - depTime;
-    const durationHrs = Math.floor(durationMs / (1000 * 60 * 60));
-    const durationMins = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    document.getElementById("flightDetails").innerHTML = `
-      <p><strong>Airline:</strong> ${f.airline} (${f.flight_id})</p>
-      <p><strong>Route:</strong> ${f.from_city} ➝ ${f.to_city}</p>
-      <p><strong>Departure:</strong> ${depTime.toLocaleString()}</p>
-      <p><strong>Arrival:</strong> ${arrTime.toLocaleString()}</p>
-      <p><strong>Duration:</strong> ${durationHrs}h ${durationMins}m</p>
-      <p><strong>Base Fare:</strong> ₹${f.base_fare.toFixed(2)} per passenger</p>
-      <p><strong>Included:</strong> ${f.cabin_free_weight}kg 🧳 Cabin, ${f.luggage_free_weight}kg 🧱 Luggage</p>
-      <p>${allowedCabin ? `💼 Extra Cabin: ₹${f.cabin_extra_price}/kg` : `❌ Extra Cabin Not Allowed`} &nbsp;&nbsp;
-         ${allowedLuggage ? `📦 Extra Luggage: ₹${f.luggage_extra_price}/kg` : `❌ Extra Luggage Not Allowed`}</p>
-    `;
-  }
-
-  function addPassenger() {
-    const container = document.getElementById("passengerContainer");
-    const index = passengerIndex++;
-
-    const disableCabin = flight.cabin_extra_allowed != 1;
-    const disableLuggage = flight.luggage_extra_allowed != 1;
-
-    const div = document.createElement("div");
-    div.id = `passenger-${index}`;
-    div.innerHTML = `
-      <div class="a">
-        <div class="aa"><label>Name</label><input name="passenger[${index}][name]" required /></div>
-        <div class="aa"><label>Gender</label><select name="passenger[${index}][gender]"><option value="male">Male</option><option value="female">Female</option></select></div>
-        <div class="aa"><label>Age</label><input type="number" name="passenger[${index}][age]" required /></div>
-        <div class="aa"><label>Cabin (kg)</label><input type="number" name="passenger[${index}][cabin]" min="0" ${disableCabin ? "disabled" : ""} oninput="calculateCost()" /></div>
-        <div class="aa"><label>Luggage (kg)</label><input type="number" name="passenger[${index}][luggage]" min="0" ${disableLuggage ? "disabled" : ""} oninput="calculateCost()" /></div>
-        <div class="aa delete-btn-container" style="align-self: end;"><button type="button" class="delete-btn" onclick="deletePassenger(${index})">Delete</button></div>
-      </div>
-      <div class="cost-breakdown" id="cost-${index}">Cost: ₹0</div>
-      <div class="divider"></div>
-    `;
-    container.appendChild(div);
-
-    updateDeleteButtons();
-    calculateCost();
-  }
-
-  function deletePassenger(index) {
-    const div = document.getElementById(`passenger-${index}`);
-    if (div) {
-      div.remove();
-      calculateCost();
-      updateDeleteButtons();
-    }
-  }
-
-  function updateDeleteButtons() {
-    const passengers = document.querySelectorAll("#passengerContainer > div");
-    const deleteButtons = document.querySelectorAll(".delete-btn");
-    if (passengers.length <= 1) {
-      deleteButtons.forEach(btn => btn.style.display = "none");
-    } else {
-      deleteButtons.forEach(btn => btn.style.display = "block");
-    }
-  }
-
-  async function proceedToPay() {
-    document.getElementById("loadingOverlay").style.display = "flex"; // show loading
-
-    const form = document.getElementById("passengerForm");
-    const data = new FormData(form);
-    const passengers = [];
-
-    for (let i = 0; i < passengerIndex; i++) {
-      const passengerDiv = document.getElementById(`passenger-${i}`);
-      if (!passengerDiv) continue;
-      passengers.push({
-        name: data.get(`passenger[${i}][name]`),
-        gender: data.get(`passenger[${i}][gender]`),
-        age: data.get(`passenger[${i}][age]`),
-        cabin: data.get(`passenger[${i}][cabin]`) || 0,
-        luggage: data.get(`passenger[${i}][luggage]`) || 0
-      });
-    }
-
-    const orderData = {
-      flight_id: flightID,
-      passengers: passengers,
-      totalAmount: parseFloat(document.getElementById("totalCost").innerText.replace("₹","").replace(",",""))
-    };
-
-    try {
-      const res = await fetch("../backend/api/flights/initiate_booking.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData)
-      });
-
-      const result = await res.json();
-
-      if (result.success) {
-        let options = {
-          key : "rzp_test_tN2HjlxfDwX4rW",
-          amount : result.amount,
-          currency : "INR",
-          name : "HindSafar Online Booking Pvt Ltd",
-          description : "Pay for your order",
-          order_id : result.payment_id,
-          callback_url : "http://localhost/Hindsafar/verify.php"
+            renderFlightDetails();
+        } catch (err) {
+            console.error(err);
+            alert("Error fetching flight details.");
         }
-        let rzp = new Razorpay(options);
-        rzp.open();
-      } else {
-        alert("Failed to create order: " + (result.message || "Unknown error"));
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert("Error while creating order. Please try again." + err);
     }
 
-    document.getElementById("loadingOverlay").style.display = "none"; // hide loading
-  }
+    function renderFlightDetails() {
+        const dep = new Date(flight.dep_time);
+        const arr = new Date(flight.arrival_time);
+        const durationMs = arr - dep;
+        const h = Math.floor(durationMs / 3600000);
+        const m = Math.floor((durationMs % 3600000) / 60000);
 
-  function calculateCost() {
+        document.getElementById("route").innerText = `${flight.from_city} → ${flight.to_city}`;
+        document.getElementById("dateAndDuration").innerText = `${dep.toDateString()} | Non Stop • ${h}h ${m}m`;
+        document.getElementById("flightDuration").innerText = `${h}h ${m}m`;
+        document.getElementById("airlineName").innerText = flight.airline;
+        document.getElementById("flightCode").innerText = flight.flight_id;
+        document.getElementById("depTime").innerText = dep.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById("arrTime").innerText = arr.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById("fromCity").innerText = flight.from_city;
+        document.getElementById("toCity").innerText = flight.to_city;
+        document.getElementById("cabinFree").innerText = flight.cabin_free_weight;
+        document.getElementById("luggageFree").innerText = flight.luggage_free_weight;
+
+        const base = parseFloat(flight.base_fare);
+        document.getElementById("baseFare").innerText = `₹${base.toFixed(2)}`;
+        updateFareSummary();
+
+        // Disable inputs based on allowance
+        document.getElementById("checkinInput").disabled = flight.luggage_extra_allowed == 0;
+        document.getElementById("cabinInput").disabled = flight.cabin_extra_allowed == 0;
+
+         let airline_url = "";
+        if(flight.airline == "Vistara"){
+            airline_url = "https://upload.wikimedia.org/wikipedia/en/thumb/b/bd/Vistara_Logo.svg/1200px-Vistara_Logo.svg.png";
+        }else if(flight.airline == "Akasa Air"){
+            airline_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ3Gq_woK4rbx6iyGpcNLtyaO4ks5dmUjDpw&s";
+        }else if(flight.airline == "SpiceJet"){
+            airline_url = "https://logos-world.net/wp-content/uploads/2023/01/SpiceJet-Logo.jpg";
+        }else if(flight.airline == "AirAsia India"){
+            airline_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/AirAsia_Logo.svg/2560px-AirAsia_Logo.svg.png";
+        }else if(flight.airline == "Go First"){
+            airline_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhhbRWH6ZUDU1CsHkNDlX8t_q4YzQyysOkFw&s";
+        }else if(flight.airline == "IndiGo"){
+            airline_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4OEGUiBc_oFJGM9cd9yW_NQhLyzaWsaJDHg&s";
+        }else if(flight.airline == "GoAir"){
+            airline_url = "https://assets.planespotters.net/files/airlines/1/goair_72e0ed_opk.png";
+        }
+        const item = document.getElementById("logoo");
+        item.setAttribute("src",airline_url);
+
+
+    }
+
+    function updateFareSummary() {
+        let base = parseFloat(flight.base_fare);
+        if(passengerCount > 1){
+            base = parseFloat(flight.base_fare) * passengerCount;
+        }
+        document.getElementById("baseFare").innerText = `₹${base.toFixed(2)}`;
+        
+        const total = base + extraCharge;
+        tot = total;
+        document.getElementById("extraCharge").innerText = `₹${extraCharge.toFixed(2)}`;
+        document.getElementById("totalFare").innerText = `₹${total.toFixed(2)}`;
+    }
+
     const form = document.getElementById("passengerForm");
-    const data = new FormData(form);
-    let total = 0;
+    const list = document.getElementById("passengerList");
 
-    for (let i = 0; i < passengerIndex; i++) {
-      const passengerDiv = document.getElementById(`passenger-${i}`);
-      if (!passengerDiv) continue;
 
-      const luggage = parseFloat(data.get(`passenger[${i}][luggage]`) || 0);
-      const cabin = parseFloat(data.get(`passenger[${i}][cabin]`) || 0);
 
-      const base = parseFloat(flight.base_fare);
-      const lugFree = parseFloat(flight.luggage_free_weight);
-      const cabFree = parseFloat(flight.cabin_free_weight);
-      const lugRate = parseFloat(flight.luggage_extra_price);
-      const cabRate = parseFloat(flight.cabin_extra_price);
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = form.name.value.trim();
+        const age = parseInt(form.age.value);
+        const gender = form.gender.value;
+        const checkin = parseFloat(form.checkin.value || 0);
+        const cabin = parseFloat(form.cabin.value || 0);
 
-      const extraLuggageCost = Math.max(0, luggage - lugFree) * lugRate;
-      const extraCabinCost = Math.max(0, cabin - cabFree) * cabRate;
-      const totalPassengerCost = base + extraLuggageCost + extraCabinCost;
+        // Calculate baggage cost
+        let extra = 0;
 
-      total += totalPassengerCost;
+        if (flight.luggage_extra_allowed && checkin > flight.luggage_free_weight) {
+            const over = checkin - flight.luggage_free_weight;
+            extra += over * parseFloat(flight.luggage_extra_price);
+        }
 
-      const costBox = document.getElementById(`cost-${i}`);
-      if (costBox) {
-        costBox.innerText = `Cost: ₹${totalPassengerCost.toFixed(2)} (Base: ₹${base}, Extra: ₹${(extraLuggageCost + extraCabinCost).toFixed(2)})`;
-      }
+        if (flight.cabin_extra_allowed && cabin > flight.cabin_free_weight) {
+            const over = cabin - flight.cabin_free_weight;
+            extra += over * parseFloat(flight.cabin_extra_price);
+        }
+
+        extraCharge += extra;
+        // updateFareSummary();
+
+        const li = document.createElement("li");
+        li.className = "flex justify-between items-center border px-4 py-2 rounded-lg bg-gray-50";
+        li.innerHTML = `
+            <div>
+                <p><strong>${name}</strong>, ${age} (${gender})</p>
+                <p class="text-sm text-gray-600">Cabin Bag: ${cabin} Kg | Check-in Luggage: ${checkin} Kg</p>
+            </div>
+            <button onclick="this.parentElement.remove(); adjustFare(${extra});" class="text-red-500 hover:text-red-700">Delete</button>
+        `;
+        // const name = form.name.value.trim();
+        // const age = parseInt(form.age.value);
+        // const gender = form.gender.value;
+        // const checkin = parseFloat(form.checkin.value || 0);
+        // const cabin = parseFloat(form.cabin.value || 0);
+        passengers.push({
+            name,
+            gender,
+            age,
+            cabin,
+            luggage: checkin
+        })
+        list.appendChild(li);
+        passengerCount++;
+        updateFareSummary();
+        form.reset();
+    });
+
+    function adjustFare(amount) {
+        extraCharge -= amount;
+        passengerCount--;
+        passengers.pop();
+        updateFareSummary();
     }
 
-    document.getElementById("totalCost").innerText = `₹${total.toFixed(2)}`;
-  }
+    async function pay(){
+        if(passengers.length == 0){
+            alert("Fill the details for passengers");
+            return ;
+        }
+        const object = {
+            flight_id : flight.flight_id,
+            passengers : passengers,
+            totalAmount : tot
+        }
+        console.log(object);
+        try {
+            const res = await fetch("../backend/api/flights/initiate_booking.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(object)
+            });
 
-  window.onload = fetchFlight;
+            const result = await res.json();
+
+            if (result.success) {
+                let options = {
+                key : "rzp_test_tN2HjlxfDwX4rW",
+                amount : result.amount,
+                currency : "INR",
+                name : "HindSafar Online Booking Pvt Ltd",
+                description : "Pay for your order",
+                order_id : result.payment_id,
+                callback_url : "http://localhost/Hindsafar/verify.php"
+                }
+                let rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                alert("Failed to create order: " + (result.message || "Unknown error"));
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("Error while creating order. Please try again." + err);
+        }
+
+        
+    }
+
+    fetchFlight();
 </script>
 
 </body>

@@ -59,9 +59,11 @@ if (!is_numeric($no_of_rooms) || $no_of_rooms <= 0) {
 $result = array();
 
 // Get hotels in the city
-$hotel_query = "SELECT * FROM hotels WHERE city = ?";
+$hotel_query = "SELECT * FROM hotels WHERE LOWER(city) = LOWER(?) OR LOWER(name) LIKE LOWER(?)";
 $stmt = $conn->prepare($hotel_query);
-$stmt->bind_param("s", $city);
+
+$like_city = "%$city%";
+$stmt->bind_param("ss", $city, $like_city);
 $stmt->execute();
 $hotel_res = $stmt->get_result();
 
@@ -90,6 +92,7 @@ while ($hotel = $hotel_res->fetch_assoc()) {
         $room_type_id = $rtype['room_type_id'];
         $type_name = $rtype['type_name'];
         $price = $rtype['price'];
+        $photo_url = $rtype['image'];
         // echo $type_name . "-> " . $room_type_id;
         // Check availability for all dates in range
         $date = $checkin_date;
@@ -123,6 +126,7 @@ while ($hotel = $hotel_res->fetch_assoc()) {
                 "room_type" => $type_name,
                 "address" => $address,
                 "price_per_night" => $price,
+                "photo_url" => $photo_url,
                 "meta-data" => array("hotel_id" => $hotel_id , "room_type_id" => $room_type_id)
             );
         }
