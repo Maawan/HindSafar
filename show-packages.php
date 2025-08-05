@@ -5,7 +5,7 @@ $packageId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 session_start();
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id || !isset($_SESSION['name'])) {
-    header("Location: /HindSafar/login.html");
+    header("Location: /Hindsafar/login.html");
     exit();
 }
 ?>
@@ -21,7 +21,8 @@ if (!$user_id || !isset($_SESSION['name'])) {
 <body class="bg-gray-100 text-gray-800">
   <header class="bg-white shadow mb-6">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold">Package Details</h1>
+        <a href="./dashboard.php"><img src="./assets/images/logo.png" class="h-6" alt="" srcset=""></a>
+      
       <a href="./dashboard.php?tab=packages" class="text-blue-600 hover:underline">Back to Packages</a>
     </div>
   </header>
@@ -29,6 +30,49 @@ if (!$user_id || !isset($_SESSION['name'])) {
   <main class="max-w-5xl mx-auto px-4 space-y-6" id="package-details">
     <div class="text-center py-10 text-gray-500">Loading package details...</div>
   </main>
+  <footer class="bg-white mt-12 pt-10 pb-6 border-t">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-6 text-sm text-gray-600">
+          <div>
+            <img src="./assets/images/logo.png" class="h-10 mb-5" alt="" srcset="">
+            <p>Your one-stop travel solution for booking flights, hotels, and custom travel packages.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Explore</h4>
+            <ul class="space-y-1">
+              <li><a href="?tab=flights" class="hover:text-primary">Flights</a></li>
+              <li><a href="?tab=hotels" class="hover:text-primary">Hotels</a></li>
+              <li><a href="?tab=packages" class="hover:text-primary">Packages</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Company</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">About Us</a></li>
+              <li><a href="#" class="hover:text-primary">Contact</a></li>
+              <li><a href="#" class="hover:text-primary">Terms & Conditions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Follow Us</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">Instagram</a></li>
+              <li><a href="#" class="hover:text-primary">Facebook</a></li>
+              <li><a href="#" class="hover:text-primary">Twitter</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="text-center text-xs text-gray-400 mt-6">&copy; <?= date('Y') ?> HindSafar. All rights reserved.</div>
+      </footer>
+
+      <!-- Loader Modal -->
+<div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 mx-auto mb-4 border-solid border-gray-200"></div>
+    <h2 class="text-lg font-semibold text-gray-800">Processing your payment...</h2>
+    <p class="text-sm text-gray-500 mt-2">Please wait while we initiate Razorpay.</p>
+  </div>
+</div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     const packageId = <?= $packageId ?>;
@@ -39,8 +83,8 @@ if (!$user_id || !isset($_SESSION['name'])) {
         const res = await fetch('./backend/api/packages/get-single-package.php?id=' + packageId);
         const pkg = await res.json();
 
-        const banner = (pkg.banner && pkg.banner !== "null") 
-          ? pkg.banner 
+        const banner = (pkg.package_images && pkg.package_images !== "null") 
+          ? pkg.package_images 
           : "https://via.placeholder.com/900x300?text=No+Banner";
 
         container.innerHTML = `
@@ -118,6 +162,7 @@ if (!$user_id || !isset($_SESSION['name'])) {
         package_id : packageId,
         start_date : date
       }
+      document.getElementById("paymentModal").classList.remove("hidden");
       try{
         const res = await fetch("./backend/api/packages/initiate-order.php", {
                 method: "POST",
@@ -133,15 +178,24 @@ if (!$user_id || !isset($_SESSION['name'])) {
                 name : "HindSafar Online Booking Pvt Ltd",
                 description : "Pay for your order",
                 order_id : result.payment_id,
+                image : "https://res.cloudinary.com/duklzb1ww/image/upload/v1754343126/logo_qcve8t.png",
+                modal: {
+                    ondismiss: function () {
+                        // Hide loader when modal is closed
+                        document.getElementById("paymentModal").classList.add("hidden");
+                        console.log("User closed Razorpay checkout.");
+                    }
+                },
                 callback_url : "http://localhost/Hindsafar/verify.php?type=package"
                 }
                 let rzp = new Razorpay(options);
                 rzp.open();
             } else {
                 alert("Failed to create order: " + (result.message || "Unknown error"));
+                document.getElementById("paymentModal").classList.add("hidden");
             }
       }catch(error){
-
+        document.getElementById("paymentModal").classList.add("hidden");
       }
       
     }

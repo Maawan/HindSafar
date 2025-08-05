@@ -1,50 +1,64 @@
 <?php
-require 'vendor/autoload.php'; // Dompdf
+// At the top of your file
+require 'vendor/autoload.php'; // Dompdf & PHPMailer
 include './backend/Database/db.php'; // DB connection
 
 use Dompdf\Dompdf;
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+// session_start();
 
+// Extract request parameters
 $type = $_GET['type'] ?? null;
 $booking_id = $_GET['booking_id'] ?? null;
 
-if (!isset($_SESSION['user_id'])) {
-    die("Unauthorized access.");
+// Accessed from browser: serve the PDF directly
+if (php_sapi_name() !== 'cli' && isset($_GET['download']) && $type && $booking_id) {
+    if (!isset($_SESSION['user_id'])) {
+        die("Unauthorized access.");
+    }
+    $pdf = generateTicketPDF($type, $booking_id, $_SESSION['user_id']);
+    header('Content-Type: application/pdf');
+    header("Content-Disposition: attachment; filename=ticket_{$type}_{$booking_id}.pdf");
+    echo $pdf;
+    exit;
 }
 
-if (!$type || !$booking_id) {
-    die("Missing required parameters.");
-}
+// ========================
+// ✅ FUNCTION: Generate Ticket PDF
+// ========================
+function generateTicketPDF($type, $booking_id, $user_id)
+{
+    global $pdo;
+    ob_start();
 
-ob_start();
-?>
+    // --- HTML starts ---
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Ticket PDF</title>
+        <style>
+            body { font-family: Arial, sans-serif; color: #333; }
+            .container { max-width: 800px; margin: auto; border: 1px solid #ccc; padding: 20px; }
+            h2 { border-bottom: 1px solid #333; padding-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+            .header-logo { text-align: center; margin-bottom: 20px; }
+            .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+    <div class="header-logo">
+        <img src="./assets/images/logo.png" alt="HindSafar Logo" height="60" />
+    </div>
+    <?php
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ticket PDF</title>
-    <style>
-        body { font-family: Arial, sans-serif; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ccc; padding: 20px; }
-        h2 { border-bottom: 1px solid #333; padding-bottom: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        .header-logo { text-align: center; margin-bottom: 20px; }
-        .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
-    </style>
-</head>
-<body>
-<div class="container">
-
-<div class="header-logo">
-    <img src="https://res.cloudinary.com/duklzb1ww/image/upload/v1754343126/logo_qcve8t.png" alt="HindSafar Logo" height="60" />
-</div>
-
-<?php
-
-if ($type === 'flight') {
-    // === FLIGHT BOOKING LOGIC ===
-    $stmt = $pdo->prepare("SELECT * FROM flight_bookings WHERE booking_id = ?");
+    // ==== FLIGHT BOOKING ====
+    if ($type === 'flight') {
+        $stmt = $pdo->prepare("SELECT * FROM flight_bookings WHERE booking_id = ?");
     $stmt->execute([$booking_id]);
     $booking = $stmt->fetch();
 
@@ -101,60 +115,61 @@ if ($type === 'flight') {
         <tr><td>Method</td><td>{$payment['method']}</td></tr>
         <tr><td>Status</td><td>{$payment['payment_status']}</td></tr>
     </table>";
-
-} else if ($type === 'hotel') {
-    // === HOTEL BOOKING LOGIC ===
-    $stmt = $pdo->prepare("SELECT 
-        hb.booking_id as booking_id,
-        h.name as hotel_name,
-        hb.user_id as user_id,
-        h.address as hotel_address,
-        h.city as hotel_city,
-        rt.type_name as Room_Type,
-        hb.rooms_booked as rooms_booked,
-        hb.check_in_date as checkin_date,
-        hb.check_out_date as checkout_date,
-        p.razorpay_order_id as order_id,
-        p.amount as amount,
-        p.payment_status as payment_status,
-        hb.created_at as orderDateAndTime
-        FROM hotels h, hotel_bookings hb , roomtype rt, payments p
-        WHERE hb.hotel_id = h.hotel_id AND rt.room_type_id = hb.room_type_id 
-        AND p.payment_id = hb.payment_id AND hb.booking_id = ?");
-    $stmt->execute([$booking_id]);
-    $hotel_booking = $stmt->fetch();
-
-    if (!$hotel_booking) die("Hotel booking not found.");
-
-    if ($hotel_booking['payment_status'] !== 'Completed' || $_SESSION['user_id'] !== $hotel_booking['user_id']) {
-        die("Unauthorized or unpaid booking.");
     }
 
-    echo "<h2>Hotel Booking Details</h2>";
-    echo "<h3>Booking Information</h3><table>
-        <tr><td>Booking ID</td><td>{$hotel_booking['booking_id']}</td></tr>
-        <tr><td>Check-In</td><td>{$hotel_booking['checkin_date']}</td></tr>
-        <tr><td>Check-Out</td><td>{$hotel_booking['checkout_date']}</td></tr>
-        <tr><td>Room Type</td><td>{$hotel_booking['Room_Type']}</td></tr>
-        <tr><td>Rooms Booked</td><td>{$hotel_booking['rooms_booked']}</td></tr>
-    </table>";
+    // ==== HOTEL BOOKING ====
+    else if ($type === 'hotel') {
+        $stmt = $pdo->prepare("SELECT 
+            hb.booking_id as booking_id,
+            h.name as hotel_name,
+            hb.user_id as user_id,
+            h.address as hotel_address,
+            h.city as hotel_city,
+            rt.type_name as Room_Type,
+            hb.rooms_booked as rooms_booked,
+            hb.check_in_date as checkin_date,
+            hb.check_out_date as checkout_date,
+            p.razorpay_order_id as order_id,
+            p.amount as amount,
+            p.payment_status as payment_status,
+            hb.created_at as orderDateAndTime
+            FROM hotels h, hotel_bookings hb , roomtype rt, payments p
+            WHERE hb.hotel_id = h.hotel_id AND rt.room_type_id = hb.room_type_id 
+            AND p.payment_id = hb.payment_id AND hb.booking_id = ?");
+        $stmt->execute([$booking_id]);
+        $hotel_booking = $stmt->fetch();
 
-    echo "<h3>Hotel Information</h3><table>
-        <tr><td>Hotel Name</td><td>{$hotel_booking['hotel_name']}</td></tr>
-        <tr><td>Address</td><td>{$hotel_booking['hotel_address']}</td></tr>
-        <tr><td>City</td><td>{$hotel_booking['hotel_city']}</td></tr>
-    </table>";
+        if (!$hotel_booking) die("Hotel booking not found.");
+        if ($hotel_booking['payment_status'] !== 'Completed' || $user_id !== $hotel_booking['user_id']) {
+            die("Unauthorized or unpaid booking.");
+        }
 
-    echo "<h3>Payment Information</h3><table>
-        <tr><td>Amount</td><td>Rs. {$hotel_booking['amount']}</td></tr>
-        <tr><td>Status</td><td>{$hotel_booking['payment_status']}</td></tr>
-        <tr><td>Payment Reference No</td><td>{$hotel_booking['order_id']}</td></tr>
-        <tr><td>Booked At</td><td>{$hotel_booking['orderDateAndTime']}</td></tr>
-    </table>";
+        echo "<h2>Hotel Booking Details</h2>";
+        echo "<h3>Booking Information</h3><table>
+            <tr><td>Booking ID</td><td>{$hotel_booking['booking_id']}</td></tr>
+            <tr><td>Check-In</td><td>{$hotel_booking['checkin_date']}</td></tr>
+            <tr><td>Check-Out</td><td>{$hotel_booking['checkout_date']}</td></tr>
+            <tr><td>Room Type</td><td>{$hotel_booking['Room_Type']}</td></tr>
+            <tr><td>Rooms Booked</td><td>{$hotel_booking['rooms_booked']}</td></tr>
+        </table>";
 
-} else if ($type === 'package') {
-    // === PACKAGE BOOKING LOGIC ===
-    $stmt = $pdo->prepare("SELECT 
+        echo "<h3>Hotel Information</h3><table>
+            <tr><td>Hotel Name</td><td>{$hotel_booking['hotel_name']}</td></tr>
+            <tr><td>Address</td><td>{$hotel_booking['hotel_address']}</td></tr>
+            <tr><td>City</td><td>{$hotel_booking['hotel_city']}</td></tr>
+        </table>";
+
+        echo "<h3>Payment Information</h3><table>
+            <tr><td>Amount</td><td>Rs. {$hotel_booking['amount']}</td></tr>
+            <tr><td>Status</td><td>{$hotel_booking['payment_status']}</td></tr>
+            <tr><td>Payment Reference No</td><td>{$hotel_booking['order_id']}</td></tr>
+            <tr><td>Booked At</td><td>{$hotel_booking['orderDateAndTime']}</td></tr>
+        </table>";
+    }
+
+    // ==== PACKAGE BOOKING ====
+    else if ($type === 'package') {
+        $stmt = $pdo->prepare("SELECT 
         cp.package_id, cp.package_name, cp.no_of_days as duration,
         cp.location as destination_location, cp.destination_covered as placesToVisit,
         cp.accommodation_included as hotels_included, cp.hotel_type,
@@ -201,28 +216,28 @@ if ($type === 'flight') {
         <tr><td>Status</td><td>{$package['payment_status']}</td></tr>
         <tr><td>Payment Reference No</td><td>{$package['order_id']}</td></tr>
     </table>";
+    }
 
-} else {
-    die("Invalid ticket type.");
+    else {
+        die("Invalid booking type.");
+    }
+
+    ?>
+    <div class="footer">
+        HindSafar – K-41 Clement Town, Dehradun, India<br/>
+        Thank you for booking with us.
+    </div>
+    </div>
+    </body>
+    </html>
+    <?php
+    // --- HTML ends ---
+
+    $html = ob_get_clean();
+    $dompdf = new Dompdf();
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    return $dompdf->output(); // Return PDF binary
 }
-?>
-
-<div class="footer">
-    HindSafar – K-41 Clement Town, Dehradun, India<br/>
-    Thank you for booking with us.
-</div>
-
-</div>
-</body>
-</html>
-
-<?php
-$html = ob_get_clean();
-
-// Generate PDF
-$dompdf = new Dompdf();
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-$dompdf->stream("ticket_{$type}_{$booking_id}.pdf", ["Attachment" => 1]);
-?>

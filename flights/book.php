@@ -2,7 +2,7 @@
 session_start();
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id || !isset($_SESSION['name'])) {
-    header("Location: /HindSafar/login.html");
+    header("Location: /Hindsafar/login.html");
     exit();
 }
 
@@ -144,6 +144,16 @@ if (!$flightID) {
         </div>
         <div class="text-center text-xs text-gray-400 mt-6">&copy; <?= date('Y') ?> HindSafar. All rights reserved.</div>
       </footer>
+
+      <!-- Loader Modal -->
+<div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 mx-auto mb-4 border-solid border-gray-200"></div>
+    <h2 class="text-lg font-semibold text-gray-800">Processing your payment...</h2>
+    <p class="text-sm text-gray-500 mt-2">Please wait while we initiate Razorpay.</p>
+  </div>
+</div>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
@@ -220,6 +230,8 @@ if (!$flightID) {
             airline_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4OEGUiBc_oFJGM9cd9yW_NQhLyzaWsaJDHg&s";
         }else if(flight.airline == "GoAir"){
             airline_url = "https://assets.planespotters.net/files/airlines/1/goair_72e0ed_opk.png";
+        }else if(flight.airline == "Air India"){
+            airline_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQMAAADCCAMAAAB6zFdcAAAA4VBMVEX////NJzD++vrMGiXJAArfg4fmhDbKABLNJS7IAADMHzDMIzDmgzbMICr55ebxzc/KABbLEyDeaTT12tvVV13ceX3VSDLLFiLrtrjTS1HWTjLPLzDlfjb99vbSPjHuwMLhcjXXYmfQOUDWTDLidzXjmJv45uf23d7wycreaDTZWDPgiIzbYDTbdHjZaG3mpKfSQ0rmoaTkdxnpr7HSSE7bZ1nOJB3uuazbVxTqnHXXTSf0zbvtrIrokFnjdSX33tTxv6fQMijhh3/mj2zmhkbUPA3gahzRMhfaVifigFvikZQnYFjLAAAKTUlEQVR4nO2b6YLixhGAdaFboAMQoJNjBAhxDePN7nq9h+04G97/gVLVLRhms04m8YAST30/kJDUqLq6qrr6QBAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgnhVSKtWTS9oWpaGaE88mePtmpalITLXEWuUV2oGK0U/qUBeNy1MIyQ/vDlpQNTdomlxmiAov5xVIHrHpsVpgr+81R9VoDtS0/I0wLu35qMKRHfQtDy3p7DfX6rAeYX94o/3/UsViEqnaYluzof79IkK5E3TEt2a5KePkXWqviVGkai8tn7xUzwTuQos00rLfiSGq6ZlujGf73OrVkB/6U8tC9KjV9YvvrtfmlB/Uxzlqp+aqA730LRQNyWJ7ZFpmmk1U+1K5HFRnzQt1U358X4Wmf2lrarxyDr1DNqiabFuyYf70ixj1VZnU/PcMTjdpsW6IdJPb6MSTMDO+2cNWJaltZsW7Ha0qy+ggdifilwDEZCm/fc/Ny3Y7cg0J/dHab9czmIwBkacV6MvSdOS3YyVokM6MFMfaz9NoYc0vX3Tkt2KZOiB76f9/giY9lMRas8cQhebFu1WBDJOnJpVDAYwy/1yGtUqELWsadluxJZPnEb+qF/V3hD7I9SDM2xathvxi8tUYFZpruZl2q9yHhXjvDRex3R6EX+pYJhoiVVql6OYZQcmDpjTUfn1l6aluwmf79O4n4/SaT6d9dVZWtmQI4wwGmB69Br6RekdqMCvqnzqL8tZPlXVUmSjBTaT5t01Ld8N+BR/TGM1Vafq1J7afdXvq+pMFEsIjHlq6k7T8t2AD/czcaaWeTxSR2pfrXx1maq2nZpmBN1k/ubPP51e/Hq/NHN7lqr+0gYtxHZqq6Motm1wBNNMl782LeHV+XxvT81KVaOZOp2BHywrtSpVNRVzVcVoYGl/9un05Kd7XzTB/Uuw/siOU+gSVBvMIjZNGD1OzZeeTs+643EX5+RacDI8A1/G3d6LvunZEn1kkT9Wfai2n6pxpKpmrI5EW60gGuTqyNRedjp9kQHQ1R41x1Gyos0pdrLjhOMXfdPzmP9wv7Qs0VyquQmVT0dwBKeo7JmZwhFSxlJ9/7jMnCwWHaQ+wDEQ2vP5PAiCOQI/OMcKwacgsTM4rTOLhBcJOEk7c2EctpvX34OOo/MxSfv3uI4GivVfY1xFssD+sbYziAo+GEEK6ohM1AcoIf34OJ3euTsarutqvd5YgcNkf5wPDEUxdq2NoWmaUWSii8fhMBP2XQVOtXG31kHvgZn8RIOCYVdaazouWnVrxjp8DcdrIdsNJ1gQ3oPFFXc4xJ9WDOMKizvFYGx89S0cFJpxDB8zCIC+WtbHkQUKmcJd78l0+kqG1oKecuzwHTnJZAfAr0GrhuDNRaifph0X7pM16lqTx1DXlYUgDLynmZdzLicELr+1cUTdTQRJwwnt5IVVUHQOPVHzHJ+vppqVDVYfQbObuZqCX0xN/CKavo1j5suSgQGNB047ALnC1sWNnSPKMhwnoBveYpIMtToPNgsP2xZwZdkDXUkwOsMZiQCj4mQycdCc2kyjE2h3BW51FK6KnvyHB+5FkXCKeScb7Ffrney6HggYVXwpETwBTqwSOkMIi6I1QhvwVVTOzDefLilMdLYTJ/HgKNctu+iON11ZdDbzbW8M8uJy3GJ72Mi6Z0CEELIDPLiBG95FRdZ1xUKIhB5vYkkS1qHuuAuMLAlTK273mIMq/ujAPVns1zsPm8DQXM+THZ3vKYn69YyxFeOZOcOWx48UdABWwW7bqeVe/NYdGLC7FTpjT5aNk5kHi87KY1VfDDDOoW4GhufokwzH220Zmr3NfNrTocUnesbbGE1/y8LLAwsJKyHAq6f9XvhbuKzVdV5qH1wSZPveznNDp95VE53Wk02/RI+IwAwgMFSgCLWEniL3WbCMrQunbWvMvLPxutfrXVrnGppMm3OzZSEg875ZpU+KomgXHVfXHV1i9iRiAQl7hE7QRWvoCS3UlDthDKGp0AYX2guv9yedfdd93GbIrKBfoQqsknUC2PrmDHQADmKKum5Ol6a2PRXHJnEvmiRBXYCKFtB+LvSgwclsE1l/Mv8YdDebMejm4HEP2Hs8nAwQqXaxBBrqzHzo8Ed3aAYv3SUkg7HmPW6xipY8LsYpHlhKsKxkz3N/+xuEDS/8+sYzhnWuLGO/JmJOBwwXQsaCXKsF9qxgTBfhPptvytDExe3+tDQ39hzHXQ+2EBBdiKiFEcqhlwgdCISKkS1WmiwrTze7gRZ154F7hNwSXp5k77i1FsyKH9OcOURshq7y/u+t7aDTLpJTYpAU/KxOczoHJvudID0mTBj8IIOCc3xQGkAqOBgcThMvmQcp4HqNZtOCa4cVAG2csP3PeLHV2j4VEWOm14F+EXIF40rzN4MJ04LVj2pVMDP48tvk2HnGGzErDP4DyQKwnP9KzASSzfn1dr4MRPCIKKqjAkRAPXR//nS11/2Pcqc5JxX0+xDYj69hzvBb2rimxHRQWo44b1qchrjT+JpKqjuv0Qg4gSNjryDKz9uHLV1w8f3JdUn6TomLE+GbKxdl+Gny7ZuuvQ+MrbFGYvgsHQyxU1TYh4I91oR/X0j8Uo1xkUc5/IlA2NWlijormAuDp4Ugtzrwh7ELGVy+6foT+y3luavKaxY+vLFe78vJtHqHzjFkK9OawlNQ7TzcPrj4HXJd/ig8PBEe4CEcQ4jMDWWFu6OuSALP43G3S4etezpDzKlZUn1tDob+rJx8z+rhrVpY03DPs34QMUiYxDpkfmu8dTHU5OMzpV0/inXuovNB9ntgCoUcEBNrNuTa8itrnI1gPygu8IquX7PyJzqeg837b9wuU3gdhJA1TsDyWGYGLawW0wqrs3LevXauFX+UW4LIzYA1uq4lAk6qMQXK/EohSBOmSqXAGZvrpMr/TNIFxcvyv1xJmTObhTbmMjvfmgFU7IiDKkc7p4SSzM2gYI/q8kkNWE+uHhyUMp+AkzuuMFAPMxXRzbi23VttfNh6nq67k+3v9pDcYkVvMB87vG25rztjNmLG/zV4uH/D2RzO9nSuFZtXcFphrQMcMrJhG5o5e0gPJSk8mUGLFXM2c+4u1xoufKeOd7IrO5473gbf9YkdC3ehaxgO10Ud05R5wXwEDIMpR384F5Hckxngo+DwdVDAYTJXj97dr1jVvb1wPMWHLY+0rmZwXdx080e2DmHwqxiG/DBet46Dy3A81vC/ndoxy3ounhnJVmH/9twIG3ZB2+OQGDDOncKRlXGhVgorIQQG+4eouxISJeR/FtVYYc+DK+yCkizYQ94DDDz5O2+95N3OtsfV6rgdLJ5O5y967C++KM6ena2E+k+/7YTf6oH1HI6MU6H6RsEfRdVs+RWIg73WJXfF6crhVAocYM5Oe681hycIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiAIgiCI/0v+AbIU3hGYxALRAAAAAElFTkSuQmCC";
         }
         const item = document.getElementById("logoo");
         item.setAttribute("src",airline_url);
@@ -314,6 +326,7 @@ if (!$flightID) {
             totalAmount : tot
         }
         console.log(object);
+        document.getElementById("paymentModal").classList.remove("hidden");
         try {
             const res = await fetch("../backend/api/flights/initiate_booking.php", {
                 method: "POST",
@@ -330,17 +343,29 @@ if (!$flightID) {
                 currency : "INR",
                 name : "HindSafar Online Booking Pvt Ltd",
                 description : "Pay for your order",
+                image: "https://res.cloudinary.com/duklzb1ww/image/upload/v1754343126/logo_qcve8t.png",
                 order_id : result.payment_id,
-                callback_url : "http://localhost/Hindsafar/verify.php?type=flight"
+                callback_url : "http://localhost/Hindsafar/verify.php?type=flight",
+                modal: {
+                    ondismiss: function () {
+                        // Hide loader when modal is closed
+                        document.getElementById("paymentModal").classList.add("hidden");
+                        console.log("User closed Razorpay checkout.");
+                    }
+                }
+
                 }
                 let rzp = new Razorpay(options);
                 rzp.open();
             } else {
                 alert("Failed to create order: " + (result.message || "Unknown error"));
+                document.getElementById("paymentModal").classList.add("hidden");
+        
             }
 
         } catch (err) {
             console.error(err);
+            document.getElementById("paymentModal").classList.add("hidden");
             alert("Error while creating order. Please try again." + err);
         }
 

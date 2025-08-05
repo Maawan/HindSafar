@@ -34,11 +34,12 @@ $tab = $_GET['tab'] ?? null;
         <img src="./assets/images/logo.png" alt="logo" class="h-6" />
       </div>
       <div class="space-x-6 hidden md:flex">
+        <a href="./contact-us.php" class="text-sm font-medium hover:text-primary">Raise a query</a>
         <?php if (isset($_SESSION['user_id'])): ?>
           <a href="./my-bookings.php" class="text-sm font-medium hover:text-primary">My Trips</a>
           <a href="./logout.php" class="text-sm font-medium hover:text-primary">Signout</a>
         <?php else: ?>
-          <a href="#" class="text-sm font-medium hover:text-primary">Login or Create Account</a>
+          <a href="../Hindsafar/login.html" class="text-sm font-medium hover:text-primary">Login or Create Account</a>
         <?php endif; ?>
         <div class="text-sm">INR | English</div>
       </div>
@@ -194,7 +195,7 @@ $tab = $_GET['tab'] ?? null;
             <h4 class="font-semibold text-gray-800 mb-2">Company</h4>
             <ul class="space-y-1">
               <li><a href="#" class="hover:text-primary">About Us</a></li>
-              <li><a href="#" class="hover:text-primary">Contact</a></li>
+              <li><a href="./contact-us.php" class="hover:text-primary">Contact</a></li>
               <li><a href="#" class="hover:text-primary">Terms & Conditions</a></li>
             </ul>
           </div>

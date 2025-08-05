@@ -12,6 +12,7 @@ if (!isset($_SESSION['name'])) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Bookings – HindSafar</title>
+  <link rel="icon" href="./assets/images/second.png" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -216,7 +217,7 @@ if (!isset($_SESSION['name'])) {
     }
 
     function downloadTicket(type, id) {
-      window.location.href = `./generate-ticket.php?type=${type}&booking_id=${id}`;
+      window.location.href = `./generate-ticket.php?type=${type}&booking_id=${id}&download=1`;
     }
 
     function filterBookings(type) {

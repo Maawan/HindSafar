@@ -13,32 +13,29 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Contact Us - HindSafar</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f8f9fc;
-        }
-        .contact-form {
-            max-width: 600px;
-            margin: auto;
-            margin-top: 50px;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-        }
-        footer {
-            margin-top: 60px;
-            text-align: center;
-            color: #666;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-200 text-gray-800">
+<header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <img src="./assets/images/logo.png" alt="logo" class="h-6" />
+      </div>
+      <div class="space-x-6 hidden md:flex">
+        <?php if (isset($_SESSION['user_id'])): ?>
+          <a href="./my-bookings.php" class="text-sm font-medium hover:text-primary">My Trips</a>
+          <a href="./logout.php" class="text-sm font-medium hover:text-primary">Signout</a>
+        <?php else: ?>
+          <a href="#" class="text-sm font-medium hover:text-primary">Login or Create Account</a>
+        <?php endif; ?>
+        <div class="text-sm">INR | English</div>
+      </div>
+    </div>
+  </header>    
 
-<div class="container">
-    <div class="contact-form">
-        <h3 class="mb-4 text-center">Contact Us</h3>
+<div class="container mx-auto px-4">
+    <div class="max-w-xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-md">
+        <h3 class="text-2xl font-semibold mb-6 text-center">Contact Us</h3>
 
         <?php
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -53,49 +50,74 @@ if (!isset($_SESSION['user_id'])) {
             $stmt->bind_param("isssss", $user_id, $name, $contact, $email, $subject, $message);
 
             if ($stmt->execute()) {
-                echo "<div class='alert alert-success'>Thank you, <strong>$name</strong>. Your query has been submitted.</div>";
+                echo "<div class='bg-green-100 text-green-800 px-4 py-3 mb-4 rounded-md'>Thank you, <strong>$name</strong>. Your query has been submitted.</div>";
             } else {
-                echo "<div class='alert alert-danger'>Something went wrong. Please try again later.</div>";
+                echo "<div class='bg-red-100 text-red-800 px-4 py-3 mb-4 rounded-md'>Something went wrong. Please try again later.</div>";
             }
 
             $stmt->close();
-
         }
         ?>
 
         <form method="POST" action="">
-            <div class="mb-3">
-                <label for="name" class="form-label">Full Name *</label>
-                <input type="text" required class="form-control" name="name" id="name">
+            <div class="mb-4">
+                <label for="name" class="block mb-1 font-medium">Full Name *</label>
+                <input type="text" required name="name" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-400">
             </div>
-            <div class="mb-3">
-                <label for="contact" class="form-label">Contact Number *</label>
-                <input type="text" required class="form-control" name="contact" id="contact">
+            <div class="mb-4">
+                <label for="contact" class="block mb-1 font-medium">Contact Number *</label>
+                <input type="text" required name="contact" id="contact" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-400">
             </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email *</label>
-                <input type="email" required class="form-control" name="email" id="email">
+            <div class="mb-4">
+                <label for="email" class="block mb-1 font-medium">Email *</label>
+                <input type="email" required name="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-400">
             </div>
-            <div class="mb-3">
-                <label for="subject" class="form-label">Subject *</label>
-                <input type="text" required class="form-control" name="subject" id="subject">
+            <div class="mb-4">
+                <label for="subject" class="block mb-1 font-medium">Subject *</label>
+                <input type="text" required name="subject" id="subject" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-400">
             </div>
-            <div class="mb-3">
-                <label for="message" class="form-label">Message *</label>
-                <textarea required class="form-control" name="message" id="message" rows="5"></textarea>
+            <div class="mb-6">
+                <label for="message" class="block mb-1 font-medium">Message *</label>
+                <textarea required name="message" id="message" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-400"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Submit Query</button>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">Submit Query</button>
         </form>
     </div>
 
-    <footer class="mt-5">
-        <hr>
-        <p><strong>Contact Details</strong></p>
-        <p>📞 Phone: +91 98765 43210</p>
-        <p>✉️ Email: support@hindsafar.com</p>
-        <p>&copy; 2025 HindSafar. Empowering your journey.</p>
-    </footer>
+    
 </div>
-
+        <footer class="bg-white mt-12 pt-10 pb-6 border-t">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-6 text-sm text-gray-600">
+          <div>
+            <img src="./assets/images/logo.png" class="h-10 mb-5" alt="" srcset="">
+            <p>Your one-stop travel solution for booking flights, hotels, and custom travel packages.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Explore</h4>
+            <ul class="space-y-1">
+              <li><a href="?tab=flights" class="hover:text-primary">Flights</a></li>
+              <li><a href="?tab=hotels" class="hover:text-primary">Hotels</a></li>
+              <li><a href="?tab=packages" class="hover:text-primary">Packages</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Company</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">About Us</a></li>
+              <li><a href="#" class="hover:text-primary">Contact</a></li>
+              <li><a href="#" class="hover:text-primary">Terms & Conditions</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Follow Us</h4>
+            <ul class="space-y-1">
+              <li><a href="#" class="hover:text-primary">Instagram</a></li>
+              <li><a href="#" class="hover:text-primary">Facebook</a></li>
+              <li><a href="#" class="hover:text-primary">Twitter</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="text-center text-xs text-gray-400 mt-6">&copy; <?= date('Y') ?> HindSafar. All rights reserved.</div>
+      </footer>
 </body>
 </html>

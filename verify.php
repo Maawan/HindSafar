@@ -47,13 +47,13 @@ if($success){
     $stmt = $pdo->prepare("SELECT payment_id, amount FROM payments WHERE razorpay_order_id = ?");
     $stmt->execute([$orderId]);
     $payment_row = $stmt->fetch();
+    $ticket_url = "";
     if ($payment_row) {
         $amount = $payment_row['amount'];
         $paymentt_id = $payment_row['payment_id'];
         $stmt = $pdo->prepare("UPDATE flight_bookings SET status = 'Confirmed' WHERE payment_id = ?");
         $stmt->execute([$paymentt_id]);
 
-        confirmFlightBooking($paymentt_id , "ooo");
         $stmt = $pdo->prepare("SELECT * from customers where CUSTOMER_ID = ?");
         $stmt->execute([$_SESSION['user_id']]);
         $user_row = $stmt->fetch();
@@ -67,21 +67,26 @@ if($success){
             $stmt->execute([$paymentt_id]);
             $booking_row = $stmt->fetch();
             $booking_id = $booking_row['booking_id'];
-            sendHotelMail($name , $email , $orderId , $amount , $booking_id);
-
+            // sendHotelMail($name , $email , $orderId , $amount , $booking_id);
+            confirmHotelBooking($booking_id);
+            $ticket_url = "./generate-ticket.php?type=hotel&booking_id={$booking_id}&download=1";
 
         }else if($type == "flight"){
             $stmt = $pdo->prepare("SELECT booking_id from flight_bookings where payment_id = ?");
             $stmt->execute([$paymentt_id]);
             $booking_row = $stmt->fetch();
             $booking_id = $booking_row['booking_id'];
-            sendFlightMail($name , $email , $orderId , $amount , $booking_id);
+            // sendFlightMail($name , $email , $orderId , $amount , $booking_id);
+            // echo "fff";
+            confirmFlightBooking($paymentt_id);
+            $ticket_url = "./generate-ticket.php?type=flight&booking_id={$booking_id}&download=1";
         }else if($type == "package"){
             $stmt = $pdo->prepare("SELECT booking_id from custom_packages_bookings where payment_id = ?");
             $stmt->execute([$paymentt_id]);
             $booking_row = $stmt->fetch();
             $booking_id = $booking_row['booking_id'];
-            sendPackageMail($name , $email , $orderId , $amount , $booking_id);
+            confirmPackageBooking($name , $email , $orderId , $amount , $booking_id , $_SESSION['user_id']);
+            $ticket_url = "./generate-ticket.php?type=package&booking_id={$booking_id}&download=1";
         }
 
     }
@@ -106,6 +111,7 @@ if($success){
                 <img src="./assets/images/logo.png" alt="logo" class="h-6" />
             </a>
             <h1 class="text-xl font-semibold"></h1>
+            
             <div class="hidden md:flex space-x-6 text-sm text-gray-600">
                 <div>INR</div>
                 <div>English</div>
@@ -127,6 +133,9 @@ if($success){
             </div>
             <a href="./my-bookings.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
                 Go to My Bookings
+            </a>
+            <a href="<?php echo htmlspecialchars($ticket_url); ?>" class="inline-block bg-green-600 hover:bg-green-700 ml-4 text-white font-semibold py-2 px-6 rounded-lg transition">
+                Download Reciept
             </a>
         </div>
     </div>

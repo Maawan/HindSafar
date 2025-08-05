@@ -6,6 +6,8 @@ use Twilio\Rest\Client;
 
 // Define the function
 function sendSMS($to, $messageBody) {
+
+
     // Twilio credentials
     $sid = "ACb2ed50757680e2695c860b6fed68a1f1";
     $token = "e838ce0751e6a6273ad7446fe93ddc07";
@@ -17,7 +19,7 @@ function sendSMS($to, $messageBody) {
     try {
         // Send SMS
         $message = $twilio->messages->create(
-            $to,
+            str_replace('+', '', $to),
             [
                 "body" => $messageBody,
                 "from" => $twilioNumber
