@@ -30,7 +30,7 @@
                 echo "<td>" . ($row['is_active'] ? '<span class=\"badge bg-success\">Yes</span>' : '<span class=\"badge bg-danger\">No</span>') . "</td>";
                 echo "<td>
                         <a href='edit-package.php?id=" . $row['package_id'] . "' class='btn btn-sm btn-warning'>✏️ Edit</a>
-                        <a href='toggle-package.php?id=" . $row['package_id'] . "' class='btn btn-sm btn-secondary'>" . ($row['is_active'] ? '🔕 Deactivate' : '🔔 Activate') . "</a>
+                        <a href='#" . $row['package_id'] . "' class='btn btn-sm btn-secondary'>" . ($row['is_active'] ? '🔕 Deactivate' : '🔔 Activate') . "</a>
                     </td>";
                 echo "</tr>";
             }
