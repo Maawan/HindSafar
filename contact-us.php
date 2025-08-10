@@ -3,7 +3,7 @@ session_start();
 require './Backend/Database/db.php';
 // 🔐 Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: login.html");
     exit();
 }
 ?>
@@ -14,17 +14,19 @@ if (!isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <title>Contact Us - HindSafar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="./assets/images/second.png" type="image/png" />
 </head>
 <body class="bg-gray-200 text-gray-800">
 <header class="bg-white shadow">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-2">
-        <img src="./assets/images/logo.png" alt="logo" class="h-6" />
+        <a href="./dashboard.php">
+        <img src="./assets/images/logo.png" alt="logo" class="h-6" /></a>
       </div>
       <div class="space-x-6 hidden md:flex">
         <?php if (isset($_SESSION['user_id'])): ?>
           <a href="./my-bookings.php" class="text-sm font-medium hover:text-primary">My Trips</a>
-          <a href="./logout.php" class="text-sm font-medium hover:text-primary">Signout</a>
+          <a href="./logout.php" class="text-sm font-medium hover:text-primary">Logout</a>
         <?php else: ?>
           <a href="#" class="text-sm font-medium hover:text-primary">Login or Create Account</a>
         <?php endif; ?>
