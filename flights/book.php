@@ -59,12 +59,12 @@ if (!$flightID) {
                 </div>
 
                 <div class="flex items-center gap-6 text-sm text-gray-700 mb-3">
-                    <div>🧳 <strong>Cabin Baggage:</strong> <span id="cabinFree">-</span> Kg / Adult</div>
+                    <div >🧳 <strong>Cabin Baggage:</strong> <span id="cabinFree">-</span> Kg / Adult</div>
                     <div>🛄 <strong>Check-In Luggage:</strong> <span id="luggageFree">-</span> Kg / Adult</div>
                 </div>
 
                 <div class="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg">
-                    Got excess baggage? Don’t stress, buy extra check-in baggage allowance from passenger list.
+                    Got excess baggage? Don’t stress, buy extra baggage allowance from passenger list.
                 </div>
             </div>
 
@@ -83,7 +83,7 @@ if (!$flightID) {
                         </select>
                     </div>
                     <div class="grid grid-cols-1 mt-2 md:grid-cols-2 gap-4">
-                        <input type="number" name="cabin" id="cabinInput" placeholder="Cabin Baggage (Kg)" class="border rounded-lg px-4 py-2 w-full" />
+                        <input type="number" name="cabin" id="cabinInput" placeholder="Cabin Baggage (Kg)" class="border rounded-lg px-4 py-2 w-full hidden" />
                         <input type="number" name="checkin" id="checkinInput" placeholder="Check-in Luggage (Kg)" class="border rounded-lg px-4 py-2 w-full" />
                     </div>
                     <button type="submit" class="bg-blue-600 mt-4 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add Passenger</button>

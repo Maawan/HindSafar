@@ -37,7 +37,7 @@ $tab = $_GET['tab'] ?? null;
         <a href="./contact-us.php" class="text-sm font-medium hover:text-primary">Raise a query</a>
         <?php if (isset($_SESSION['user_id'])): ?>
           <a href="./my-bookings.php" class="text-sm font-medium hover:text-primary">My Trips</a>
-          <a href="./logout.php" class="text-sm font-medium hover:text-primary">Signout</a>
+          <a href="./logout.php" class="text-sm font-medium hover:text-primary">Logout</a>
         <?php else: ?>
           <a href="../Hindsafar/login.html" class="text-sm font-medium hover:text-primary">Login or Create Account</a>
         <?php endif; ?>
@@ -50,23 +50,17 @@ $tab = $_GET['tab'] ?? null;
   <div class="bg-white shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center overflow-x-auto space-x-6">
       <a href="?tab=flights" class="tab-btn flex flex-col items-center <?php echo ($tab == 'flights') ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-primary'; ?>">
-        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 14.25L10.5 21v-4.125L21.75 3.75 20.25 2.25 10.5 13.125V9L2.25 14.25z" />
-        </svg>
+        <img src="./assets/images/airplane1.png" style="height: 30px;"/>
         <span class="text-xs font-semibold">Flights</span>
       </a>
 
       <a href="?tab=hotels" class="tab-btn flex flex-col items-center <?php echo ($tab == 'hotels') ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-primary'; ?>">
-        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16M4 6h16M4 18h16" />
-        </svg>
+        <img src="./assets/images/hotel.png" style="height: 30px;"/>
         <span class="text-xs">Hotels</span>
       </a>
 
       <a href="?tab=packages" class="tab-btn flex flex-col items-center <?php echo ($tab == 'packages') ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-primary'; ?>">
-        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <img src="./assets/images/travel-luggage.png" style="height: 30px;"/>
         <span class="text-xs">Packages</span>
       </a>
     </div>

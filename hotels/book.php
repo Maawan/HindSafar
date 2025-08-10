@@ -1,6 +1,8 @@
 <?php
+session_start();
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id || !isset($_SESSION['name'])) {
+  echo "...";
     header("Location: /Hindsafar/login.html");
     exit();
 }
